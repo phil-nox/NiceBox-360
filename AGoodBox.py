@@ -12,6 +12,7 @@ defaultD = 10
 defaultKerf = 0.03
 defaultShiftTotal = 1
 defaultSheetAlpha = 0.3
+defaultMill = 0.0
 
 #wall = self.wall
 #h = self.h
@@ -81,6 +82,8 @@ class BoltCommandExecuteHandler(adsk.core.CommandEventHandler):
                     bolt.shiftBottom = unitsMgr.evaluateExpression(input.expression, "cm")
                 elif input.id == 'sheetAlpha':
                     bolt.sheetAlpha = unitsMgr.evaluateExpression(input.expression, "cm")
+                elif input.id == 'mill':
+                    bolt.sheetAlpha = unitsMgr.evaluateExpression(input.expression, "cm")
 
             bolt.buildBolt();
             args.isValidResult = True
@@ -140,6 +143,9 @@ class BoltCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
 
             initKerf = adsk.core.ValueInput.createByReal(defaultKerf)
             inputs.addValueInput('kerf', 'Kerf Laser Cut', 'cm', initKerf)
+            
+            initMill = adsk.core.ValueInput.createByReal(defaultMill)
+            inputs.addValueInput('mill', 'Mill diameter', 'cm', initMill)
 
             initShiftTotal = adsk.core.ValueInput.createByReal(defaultShiftTotal)
             inputs.addValueInput('shiftTotal', 'Shift', 'cm', initShiftTotal)
@@ -164,6 +170,7 @@ class Bolt:
         self._shiftBack   = adsk.core.ValueInput.createByReal(defaultShiftTotal)
         self._shiftFront   = adsk.core.ValueInput.createByReal(defaultShiftTotal)
         self._shiftBottom   = adsk.core.ValueInput.createByReal(defaultShiftTotal)
+        self._mill       = defaultMill
 
 
     #properties
@@ -250,6 +257,13 @@ class Bolt:
     @sheetAlpha.setter
     def sheetAlpha(self, value):
         self._sheetAlpha = value
+        
+    @property
+    def mill(self):
+        return self._mill
+    @mill.setter
+    def mill(self, value):
+        self._mill = value
 
     def buildBolt(self):
         root = createNewComponent() 
@@ -354,7 +368,40 @@ class Bolt:
         print(root.bRepBodies.count)
         
         print(root.sketches.count)    
-    
+   
+    def rectForBox(self, sketch, offset, cX,cY,w,h):
+        
+        #make rectangle 
+        sketch.sketchCurves.sketchLines.addCenterPointRectangle(adsk.core.Point3D.create(cX,cY,offset),adsk.core.Point3D.create(cX+w,cY+h,offset))  
+        
+        #make mill's holes
+        mill = self.mill
+        yMill = True 
+        
+        if(mill>0.0):
+            r=mill/2.0
+            if(yMill):
+                if(w>h):
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w-r, cY+h, offset), r)
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w-r, cY-h, offset), r)
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX-w+r, cY-h, offset), r)
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX-w+r, cY+h, offset), r)
+                else:
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w, cY+h-r, offset), r)
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w, cY-h+r, offset), r)
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX-w, cY-h+r, offset), r)
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX-w, cY+h-r, offset), r)
+            else:
+                if(w>h):
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w, cY+h-r, offset), r)
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w, cY-h+r, offset), r)
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX-w, cY-h+r, offset), r)
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX-w, cY+h-r, offset), r)
+                else:
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w-r, cY+h, offset), r)
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w-r, cY-h, offset), r)
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX-w+r, cY-h, offset), r)
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX-w+r, cY+h, offset), r)
     
     def left(self,offset,root,sheetXBase,sheetXFront):
         sketches = root.sketches
@@ -365,37 +412,22 @@ class Bolt:
         
         lines.addTwoPointRectangle(adsk.core.Point3D.create(self.d/2,self.h,offset),adsk.core.Point3D.create(-self.d/2,0,offset))
         
-        #axe = self.shiftBottom+self.wall/2   THIS is important
-        lines.addCenterPointRectangle(adsk.core.Point3D.create( 0,                              \
-                                                                self.shiftBottom+self.wall/2,   \
-                                                                offset),                        \
-                                      adsk.core.Point3D.create( sheetXBase, \
-                                                                self.shiftBottom+self.wall/2    +(self.wall-self.kerf)/2,      \
-                                                                offset))
         
-        #axe = self.h-self.shiftTop-self.wall/2   THIS is important
-        lines.addCenterPointRectangle(adsk.core.Point3D.create( 0,                              \
-                                                                self.h-self.shiftTop-self.wall/2,   \
-                                                                offset),                        \
-                                      adsk.core.Point3D.create( sheetXBase, \
-                                                                self.h-self.shiftTop-self.wall/2    +(self.wall-self.kerf)/2,      \
-                                                                offset))
+        #axe = self.shiftBottom+self.wall/2   THIS is important
+        self.rectForBox(sketch,offset, cX= 0,   cY= self.shiftBottom+self.wall/2,  w= sheetXBase, h= (self.wall-self.kerf)/2);
+        
+        
+        #axe = self.h-self.shiftTop-self.wall/2   THIS is important                                                                 
+        self.rectForBox(sketch,offset, cX= 0,   cY= self.h-self.shiftTop-self.wall/2,  w= sheetXBase, h= (self.wall-self.kerf)/2);
+              
+                                                  
+        #axe = self.d/2-self.shiftBack-self.wall/2   THIS is important
+        self.rectForBox(sketch,offset, cX= self.d/2-self.shiftBack-self.wall/2,   cY= self.h/2,  w= (self.wall-self.kerf)/2, h= sheetXFront);                                               
+            
                                                                 
         #axe = self.d/2-self.shiftBack-self.wall/2   THIS is important
-        lines.addCenterPointRectangle(adsk.core.Point3D.create( self.d/2-self.shiftBack-self.wall/2,                  \
-                                                                self.h/2,   \
-                                                                offset),                        \
-                                      adsk.core.Point3D.create( self.d/2-self.shiftBack-self.wall/2    +(self.wall-self.kerf)/2, \
-                                                                self.h/2+sheetXFront,\
-                                                                offset))
+        self.rectForBox(sketch,offset, cX= -self.d/2+self.shiftFront+self.wall/2,   cY= self.h/2,  w= (self.wall-self.kerf)/2, h= sheetXFront);                                                         
                                                                 
-        #axe = self.d/2-self.shiftBack-self.wall/2   THIS is important
-        lines.addCenterPointRectangle(adsk.core.Point3D.create( -self.d/2+self.shiftFront+self.wall/2,                  \
-                                                                self.h/2,   \
-                                                                offset),                        \
-                                      adsk.core.Point3D.create( -self.d/2+self.shiftFront+self.wall/2    -(self.wall-self.kerf)/2, \
-                                                                self.h/2+sheetXFront,\
-                                                                offset))
         
         extrudes = root.features.extrudeFeatures
         #prof = sketch.profiles[0]
@@ -424,22 +456,15 @@ class Bolt:
         # sheetXFront for Rigth
         lines.addCenterPointRectangle(adsk.core.Point3D.create((self.w-self.wall)/2,self.h/2,offset),adsk.core.Point3D.create((self.w-self.wall)/2+self.wall,self.h/2+sheetXFront,offset))
         
-        #axe = self.shiftBottom+self.wall/2   THIS is important
-        lines.addCenterPointRectangle(adsk.core.Point3D.create( 0,                              \
-                                                                self.shiftBottom+self.wall/2,   \
-                                                                offset),                        \
-                                      adsk.core.Point3D.create( sheetZ, \
-                                                                self.shiftBottom+self.wall/2    +(self.wall-self.kerf)/2,      \
-                                                                offset))
         
-        #axe = self.h-self.shiftTop-self.wall/2   THIS is important
-        lines.addCenterPointRectangle(adsk.core.Point3D.create( 0,                              \
-                                                                self.h-self.shiftTop-self.wall/2,   \
-                                                                offset),                        \
-                                      adsk.core.Point3D.create( sheetZ, \
-                                                                self.h-self.shiftTop-self.wall/2    +(self.wall-self.kerf)/2,      \
-                                                                offset))
-                                                                
+        #axe = self.shiftBottom+self.wall/2   THIS is important
+        self.rectForBox(sketch,offset, cX= 0,   cY= self.shiftBottom+self.wall/2,  w= sheetZ, h= (self.wall-self.kerf)/2);
+        
+        
+        #axe = self.h-self.shiftTop-self.wall/2   THIS is important                                                              
+        self.rectForBox(sketch,offset, cX= 0,   cY= self.h-self.shiftTop-self.wall/2,  w= sheetZ, h= (self.wall-self.kerf)/2);
+           
+                                                     
         extrudes = root.features.extrudeFeatures
         #prof = sketch.profiles[0]
         
@@ -461,7 +486,6 @@ class Bolt:
         sketch = sketches.add(planeXZ)
         
         lines = sketch.sketchCurves.sketchLines
-        
         
           
         #   half of base from origin to front
@@ -492,7 +516,8 @@ class Bolt:
         distExtrude = adsk.core.ValueInput.createByReal(self.wall)   
         extrudeInput.setDistanceExtent(False, distExtrude)
         return extrudes.add(extrudeInput)        
-         
+    
+
         
 def run(context):
     try:
