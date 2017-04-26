@@ -3,7 +3,6 @@
 
 
 import adsk.core, adsk.fusion, traceback
-import math
 
 defaultBoxName = 'Box'
 defaultWall = 0.3
