@@ -2,7 +2,7 @@
 Box generator for Fusion 360
 
 # How it's work ?
-[logo]: https://drive.google.com/file/d/0B3tgYzIk3ZtMbV9MSGt6MEIzNTg/view?usp=sharing "Logo Title Text 2"
+[logo]: https://lh5.googleusercontent.com/aqafgN5_mAyujnn3t0XExhGxMdvZOD67Tm1WDakCPVST45Q5G-7WOQlLCDJqWzT-M3ejM7FGkuhvnw=w1366-h662 "Logo Title Text 2"
 
 
 
