@@ -1,7 +1,9 @@
-# AGoodBox
+# NiceBox-360
 Box generator for Fusion 360
 
 # How it's work ?
+
+
 
 # Installing
 Click on **Clone or Download button**, then **Download ZIP**. Unzip that files in script folder on your computer:
