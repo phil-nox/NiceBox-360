@@ -2,9 +2,17 @@
 Box generator for Fusion 360
 
 # How it's work ?
-[logo]: https://lh5.googleusercontent.com/aqafgN5_mAyujnn3t0XExhGxMdvZOD67Tm1WDakCPVST45Q5G-7WOQlLCDJqWzT-M3ejM7FGkuhvnw=w1366-h662 "Logo Title Text 2"
+![Alt text](/resources/Images/Origin.jpg?raw=true "Original")
 
+![Alt text](/resources/Images/Wall.jpg?raw=true "Wall")
 
+![Alt text](/resources/Images/Height.jpg?raw=true "Height")
+
+![Alt text](/resources/Images/Width.jpg?raw=true "Width")
+
+![Alt text](/resources/Images/Depth.jpg?raw=true "Depth")
+
+![Alt text](/resources/Images/Shift.jpg?raw=true "Shift")
 
 # Installing
 Click on **Clone or Download button**, then **Download ZIP**. Unzip that files in script folder on your computer:
