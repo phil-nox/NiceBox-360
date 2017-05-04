@@ -6,10 +6,10 @@ Box generator for Fusion 360
 # Installing
 Click on **Clone or Download button**, then **Download ZIP**. Unzip that files in script folder on your computer:
 
-For Windows:
+For Windows:    
 %appdata%\Autodesk\Autodesk Fusion 360\API\Scripts
 
-For Mac:
+For Mac:    
 ~/Library/Application Support/Autodesk/Autodesk Fusion 360/API/Scripts
 
 # FAQ
