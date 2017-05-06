@@ -3,7 +3,7 @@ Box generator for Fusion 360
 
 # How it's work ?
 ![Alt text](/resources/Images/Origin.jpg?raw=true "Original")
-
+When you launch script box will appear with default parameters. 
 ![Alt text](/resources/Images/Wall.jpg?raw=true "Wall")
 
 ![Alt text](/resources/Images/Height.jpg?raw=true "Height")
