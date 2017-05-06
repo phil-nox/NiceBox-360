@@ -6,7 +6,7 @@ When you launch script box will appear with default parameters.
 
 ![Alt text](/resources/Images/Origin.jpg?raw=true "Original")
 
-*Wall* parameter changes wall thickness.
+**Wall** parameter changes wall thickness.
 
 ![Alt text](/resources/Images/Wall.jpg?raw=true "Wall")
 
