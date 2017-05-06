@@ -10,9 +10,15 @@ When you launch script box will appear with default parameters.
 
 ![Alt text](/resources/Images/Wall.jpg?raw=true "Wall")
 
+**Height** parameter changes height of the box.
+
 ![Alt text](/resources/Images/Height.jpg?raw=true "Height")
 
+**Width** parameter changes width of the box.
+
 ![Alt text](/resources/Images/Width.jpg?raw=true "Width")
+
+**Depth** parameter changes depth of the box.
 
 ![Alt text](/resources/Images/Depth.jpg?raw=true "Depth")
 
