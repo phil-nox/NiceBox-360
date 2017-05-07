@@ -33,6 +33,11 @@ For Windows:
 For Mac:    
 ~/Library/Application Support/Autodesk/Autodesk Fusion 360/API/Scripts
 
+# Timeline of out project
+| Date          | Event         | DeadLine  |
+| ------------- |:-------------:| ---------:|
+| col 3 is      | right-aligned | $1600     |
+
 # FAQ
 test
 # License
