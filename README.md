@@ -34,11 +34,12 @@ For Mac:
 ~/Library/Application Support/Autodesk/Autodesk Fusion 360/API/Scripts
 
 # Timeline of out project
-| Date          | Event                                                           | DeadLine    |
-| ------------- |:----------------------------------------------------------------| -----------:|
-| 29.03.2017    | Project initialization: <br> Team creation, task definition, participation in the hackathon "3D hackathon" <br> - https://adncis.timepad.ru/event/453896/                                           | 31.03.2017  |
-| 31.03.2017    | Our team: <br> https://github.com/azamtau  <br> https://github.com/copypastestd  <br> https://github.com/PhilippNox <br> Project **NiceBox-360** <br> Our team took 2nd place on the hakaton in the nomination _Fusion 360_               | 02.04.2017  |
-| 25.04.2017    | Preparation of the grant application                            | 10.05.2017  |
+| Date          | Event                                                                                    | DeadLine    |
+| ------------- |:-----------------------------------------------------------------------------------------| -----------:|
+| 29.03.2017    | Project initialization: <br> Team creation, task definition, participation in the hackathon "3D hackathon" <br> - https://adncis.timepad.ru/event/453896/                                                                    | 31.03.2017  |
+| 31.03.2017    | Our team: <br> https://github.com/azamtau  <br> https://github.com/copypastestd  <br> https://github.com/PhilippNox <br> Project **NiceBox-360** <br> Our team took 2nd place on the hakaton in the nomination **_Fusion 360_**| 02.04.2017  |
+| 25.04.2017    | GitHub publication                                                                       | 10.05.2017  |
+| 26.04.2017    | Preparation of the grant application                                                     | 09.05.2017  |
 
 
 # FAQ
