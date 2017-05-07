@@ -35,10 +35,11 @@ For Mac:
 
 # Timeline of out project
 | Date          | Event                                                           | DeadLine    |
-| ------------- |:---------------------------------------------------------------:| -----------:|
-| 29.03.2017    | Project initialization: Team creation, task definition, participation in the hackathon "3D hackathon" - https://adncis.timepad.ru/event/453896/                                           | 31.03.2017  |
-| 31.03.2017    | Our team: https://github.com/azamtau https://github.com/copypastestd https://github.com/PhilippNox Project NiceBox-360 Our team took 2nd place on the hakaton in the nomination fusion 360               | 02.04.2017  |
+| ------------- |:----------------------------------------------------------------| -----------:|
+| 29.03.2017    | Project initialization: <br> Team creation, task definition, participation in the hackathon "3D hackathon" <br> - https://adncis.timepad.ru/event/453896/                                           | 31.03.2017  |
+| 31.03.2017    | Our team: <br> https://github.com/azamtau  <br> https://github.com/copypastestd  <br> https://github.com/PhilippNox <br> Project **NiceBox-360** <br> Our team took 2nd place on the hakaton in the nomination _Fusion 360_               | 02.04.2017  |
 | 25.04.2017    | Preparation of the grant application                            | 10.05.2017  |
+
 
 # FAQ
 test
