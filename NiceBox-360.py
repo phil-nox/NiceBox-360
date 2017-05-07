@@ -526,7 +526,7 @@ class BOX:
 # Add data to User Parameters
 def userParams():
     
-    # ToDo - днаюбхрэ опнбепйс   
+    # ToDo -   
     if not paramExists(design, 'defaultBoxName'):
         design.userParameters.add('defaultBoxName', adsk.core.ValueInput.createByString(defaultBoxName), "", "Box name")
     if not paramExists(design, 'defaultWall'):
