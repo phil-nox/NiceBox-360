@@ -36,9 +36,9 @@ For Mac:
 # Timeline of out project
 | Date          | Event                                                           | DeadLine    |
 | ------------- |:---------------------------------------------------------------:| -----------:|
-| 31.03.2017    | Project initialization:                                        //| 31.03.2017 /|
-|               |  Team creation, task definition, participation in the hackathon//|             |  
-|               |  "3D hackathon" - https://adncis.timepad.ru/event/453896/      //|             |   
+| 31.03.2017    | Project initialization: Team creation, task definition, participation in the hackathon "3D hackathon" - https://adncis.timepad.ru/event/453896/                                        | 31.03.2017   |
+|               |  |              |  
+|               |       |              |   
 | 31.03.2017    | Project initialization:                                         | 31.03.2017  |
 # FAQ
 test
