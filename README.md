@@ -56,9 +56,11 @@ For Mac:
 
 
 # FAQ
-**When you script will be available on Fusion 360 Store?**
-
+**When you script will be available on Fusion 360 Store?**<br>
 In our plans to publish NiceBox during May-June 2017.
+
+**How much will your script cost?**<br>
+Our project is opensource and free to use.
 
 # License
 
