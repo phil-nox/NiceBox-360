@@ -56,7 +56,9 @@ For Mac:
 
 
 # FAQ
-test
+**When you script will be available on Fusion 360 Store?**
+
+In our plans to publish NiceBox during May-June 2017.
 
 # License
 
