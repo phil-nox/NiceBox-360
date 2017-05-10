@@ -30,7 +30,7 @@ _This parameter is a physical thickness of material which you will use for produ
 ![Alt text](/resources/Images/Depth.jpg?raw=true "Depth")
 
 **Shift** parameter is a value how deep top, bottom, back and front are placed relatively to edge of the box.
-_Good example here is 0mm_
+_Good example here is 0mm._
 
 ![Alt text](/resources/Images/Shift.jpg?raw=true "Shift")
 
