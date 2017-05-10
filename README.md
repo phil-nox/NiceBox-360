@@ -12,7 +12,8 @@ When you launch script box will appear with default parameters.
 
 ![Alt text](/resources/Images/Origin.jpg?raw=true "Original")
 
-**Wall** parameter changes wall thickness.
+**Wall** parameter changes wall thickness. 
+_This parameter is a physical thickness of material which you will use for production. In our case 3mm plywood is very popular choice._
 
 ![Alt text](/resources/Images/Wall.jpg?raw=true "Wall")
 
@@ -27,6 +28,9 @@ When you launch script box will appear with default parameters.
 **Depth** parameter changes depth of the box.
 
 ![Alt text](/resources/Images/Depth.jpg?raw=true "Depth")
+
+**Shift** parameter is a value how deep top, bottom, back and front are placed relatively to edge of the box.
+_Good example here is 0mm_
 
 ![Alt text](/resources/Images/Shift.jpg?raw=true "Shift")
 
