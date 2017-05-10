@@ -1,5 +1,11 @@
 # NiceBox-360
-Box generator for Fusion 360
+NiceBox-360 is a script for Fusion 360 for designing laser-cut and mill-cut boxes.
+
+### Inputs 
+Input for the script is a array of parameters. Parameters describes size of the box, material and tool of production. More information and examples you can find it below. 
+
+### Outputs
+Outputs of the script are a 3D model of the box and 6 sketches. Each sketch is a blueprint of the wall of the box, which you can save as .dxf and use for production.
 
 # How it's work ?
 When you launch script box will appear with default parameters.
