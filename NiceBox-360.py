@@ -265,13 +265,13 @@ class BOX:
         conerBack   = d/2-wall-shiftBack        
         
         self.bot_top("Bottom",shiftBottom,root,conerFront,conerBack,sheetZ,sheetXBase)
-#        self.bot_top("Top",h-wall-shiftTop,root,conerFront,conerBack,sheetZ,sheetXBase)
+        self.bot_top("Top",h-wall-shiftTop,root,conerFront,conerBack,sheetZ,sheetXBase)
             
-#        self.left_right("Right",(w-wall)/2,       root,sheetXBase,sheetXFront)
-#        self.left_right("Left",-(w-wall)/2-wall, root,sheetXBase,sheetXFront)
+        self.left_right("Right",(w-wall)/2,       root,sheetXBase,sheetXFront)
+        self.left_right("Left",-(w-wall)/2-wall, root,sheetXBase,sheetXFront)
             
-#        self.front_back("Back",conerBack,        root,sheetXFront,sheetZ)
-#        self.front_back("Front",-conerFront-wall, root,sheetXFront,sheetZ)
+        self.front_back("Back",conerBack,        root,sheetXFront,sheetZ)
+        self.front_back("Front",-conerFront-wall, root,sheetXFront,sheetZ)
      
         
         #TO-DELETE
@@ -520,22 +520,22 @@ class BOX:
         
         #   half of base from origin to front
         rectangleToCut = lines.addTwoPointRectangle(adsk.core.Point3D.create(-(self.w-self.wall)/2,0,offset),adsk.core.Point3D.create((self.w-self.wall)/2,conerFront,offset))
-        rectangleToCut = rectangleToCut.item(0).deleteMe()
+        #rectangleToCut = rectangleToCut.item(0).deleteMe()
         #   half of base from origin to back
         rectangleToCut = lines.addTwoPointRectangle(adsk.core.Point3D.create(-(self.w-self.wall)/2,0,offset),adsk.core.Point3D.create((self.w-self.wall)/2,-conerBack,offset))
-        rectangleToCut.item(0).deleteMe()
+        #rectangleToCut.item(0).deleteMe()
         # sheetZ for front
         rectangleToCut = lines.addCenterPointRectangle(adsk.core.Point3D.create(0,conerFront,offset),adsk.core.Point3D.create(sheetZ,conerFront-self.wall,offset))
-        rectangleToCut.item(0).deleteMe()
+        #rectangleToCut.item(0).deleteMe()
         # sheetZ for back
         rectangleToCut = lines.addCenterPointRectangle(adsk.core.Point3D.create(0,-conerBack,offset),adsk.core.Point3D.create(sheetZ,-conerBack-self.wall,offset))
-        rectangleToCut.item(2).deleteMe()
+        #rectangleToCut.item(2).deleteMe()
         # sheetXBase for left
         rectangleToCut = lines.addCenterPointRectangle(adsk.core.Point3D.create(-(self.w-self.wall)/2,0,offset),adsk.core.Point3D.create((-(self.w-self.wall)/2)-self.wall,sheetXBase,offset))
-        rectangleToCut.item(1).deleteMe()         
+        #rectangleToCut.item(1).deleteMe()         
         # sheetXBase for Rigth
         rectangleToCut = lines.addCenterPointRectangle(adsk.core.Point3D.create((self.w-self.wall)/2,0,offset),adsk.core.Point3D.create(((self.w-self.wall)/2)+self.wall,sheetXBase,offset))
-        rectangleToCut.item(1).deleteMe() 
+        #rectangleToCut.item(1).deleteMe() 
         
         #lines.addCenterPointRectangle(adsk.core.Point3D.create(0,0,offset),adsk.core.Point3D.create(2,2,offset))  
             
