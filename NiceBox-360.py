@@ -341,9 +341,9 @@ class BOX:
 #        CombineCutInput.isKeepToolBodies = True
 #        CombineCutFeats.add(CombineCutInput)
         
-        print(root.bRepBodies.count)
+#        print(root.bRepBodies.count)
         
-        print(root.sketches.count)    
+#        print(root.sketches.count)    
     
     
     def left_right(self,_name,offset,root,sheetXBase,sheetXFront):
@@ -401,7 +401,7 @@ class BOX:
         for prof in sketch.profiles:
             profs.add(prof)
             
-        extrudeInput = extrudes.createInput(profs, adsk.fusion.FeatureOperations.NewBodyFeatureOperation)
+        extrudeInput = extrudes.createInput(profs[0], adsk.fusion.FeatureOperations.NewBodyFeatureOperation)
         distExtrude = adsk.core.ValueInput.createByReal(self.wall)   
         extrudeInput.setDistanceExtent(False, distExtrude)
         
@@ -417,6 +417,7 @@ class BOX:
         
     def front_back(self,_name,offset,root,sheetXFront,sheetZ):
         #Component rename
+        print(_name)
         side = createNewComponent(root) 
         side.name = _name        
              
@@ -457,7 +458,39 @@ class BOX:
             
         for prof in sketch.profiles:
             profs.add(prof)
+        print(profs.count)
+
+        # TODO MAKE IT IN GOOD WAY
+
+        profs.removeByIndex(5)
+        profs.removeByIndex(4)
+        #profs.removeByIndex()
+#        profs.removeByIndex(4)
+#        profs.removeByIndex(0)
+#        profs.removeByIndex(1)
+#        profs.removeByIndex(2)
+#        profs.removeByIndex(3)
+#        profs.removeByIndex(4)
+#        profs.removeByIndex(5)
+#        profs.removeByIndex(6)
+   
+        
+        print(profs.count)
+#        count = profs.count
+#        for all in profs:
+#            areaProf = profs[count-1].areaProperties(adsk.fusion.CalculationAccuracy.MediumCalculationAccuracy).perimeter
+#            print('The area of profile is: ' + str(areaProf))
+#            areaProf = profs[count-1].areaProperties(adsk.fusion.CalculationAccuracy.MediumCalculationAccuracy).perimeter
+#            print('\n' + 'The area of profile is: ' + str(areaProf))
+        
             
+#        areaProps = profs[0].areaProperties(adsk.fusion.CalculationAccuracy.MediumCalculationAccuracy)
+#        print(areaProps.perimeter)
+#        areaProps = profs[1].areaProperties(adsk.fusion.CalculationAccuracy.MediumCalculationAccuracy)
+#        print(areaProps.perimeter)
+#        areaProps = profs[2].areaProperties(adsk.fusion.CalculationAccuracy.MediumCalculationAccuracy)
+#        print(areaProps.perimeter)
+        
         extrudeInput = extrudes.createInput(profs, adsk.fusion.FeatureOperations.NewBodyFeatureOperation)
         distExtrude = adsk.core.ValueInput.createByReal(self.wall)   
         extrudeInput.setDistanceExtent(False, distExtrude)
@@ -486,19 +519,25 @@ class BOX:
         lines = sketch.sketchCurves.sketchLines
         
         #   half of base from origin to front
-        lines.addTwoPointRectangle(adsk.core.Point3D.create(-(self.w-self.wall)/2,0,offset),adsk.core.Point3D.create((self.w-self.wall)/2,conerFront,offset)) 
+        rectangleToCut = lines.addTwoPointRectangle(adsk.core.Point3D.create(-(self.w-self.wall)/2,0,offset),adsk.core.Point3D.create((self.w-self.wall)/2,conerFront,offset))
+        #rectangleToCut = rectangleToCut.item(0).deleteMe()
         #   half of base from origin to back
-        lines.addTwoPointRectangle(adsk.core.Point3D.create(-(self.w-self.wall)/2,0,offset),adsk.core.Point3D.create((self.w-self.wall)/2,-conerBack,offset))
+        rectangleToCut = lines.addTwoPointRectangle(adsk.core.Point3D.create(-(self.w-self.wall)/2,0,offset),adsk.core.Point3D.create((self.w-self.wall)/2,-conerBack,offset))
+        #rectangleToCut.item(0).deleteMe()
         # sheetZ for front
-        lines.addCenterPointRectangle(adsk.core.Point3D.create(0,conerFront,offset),adsk.core.Point3D.create(sheetZ,conerFront-self.wall,offset))        
+        rectangleToCut = lines.addCenterPointRectangle(adsk.core.Point3D.create(0,conerFront,offset),adsk.core.Point3D.create(sheetZ,conerFront-self.wall,offset))
+        #rectangleToCut.item(0).deleteMe()
         # sheetZ for back
-        lines.addCenterPointRectangle(adsk.core.Point3D.create(0,-conerBack,offset),adsk.core.Point3D.create(sheetZ,-conerBack-self.wall,offset))
+        rectangleToCut = lines.addCenterPointRectangle(adsk.core.Point3D.create(0,-conerBack,offset),adsk.core.Point3D.create(sheetZ,-conerBack-self.wall,offset))
+        #rectangleToCut.item(2).deleteMe()
         # sheetXBase for left
-        lines.addCenterPointRectangle(adsk.core.Point3D.create(-(self.w-self.wall)/2,0,offset),adsk.core.Point3D.create((-(self.w-self.wall)/2)-self.wall,sheetXBase,offset))         
+        rectangleToCut = lines.addCenterPointRectangle(adsk.core.Point3D.create(-(self.w-self.wall)/2,0,offset),adsk.core.Point3D.create((-(self.w-self.wall)/2)-self.wall,sheetXBase,offset))
+        #rectangleToCut.item(1).deleteMe()         
         # sheetXBase for Rigth
-        lines.addCenterPointRectangle(adsk.core.Point3D.create((self.w-self.wall)/2,0,offset),adsk.core.Point3D.create(((self.w-self.wall)/2)+self.wall,sheetXBase,offset))
+        rectangleToCut = lines.addCenterPointRectangle(adsk.core.Point3D.create((self.w-self.wall)/2,0,offset),adsk.core.Point3D.create(((self.w-self.wall)/2)+self.wall,sheetXBase,offset))
+        #rectangleToCut.item(1).deleteMe() 
         
-        lines.addCenterPointRectangle(adsk.core.Point3D.create(0,0,offset),adsk.core.Point3D.create(2,2,offset))  
+        #lines.addCenterPointRectangle(adsk.core.Point3D.create(0,0,offset),adsk.core.Point3D.create(2,2,offset))  
             
         
         extrudes = side.features.extrudeFeatures
