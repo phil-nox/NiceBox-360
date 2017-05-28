@@ -265,20 +265,14 @@ class BOX:
         conerBack   = d/2-wall-shiftBack        
         
         self.bot_top("Bottom",shiftBottom,root,conerFront,conerBack,sheetZ,sheetXBase)
-        #self.bot_top("Top",h-wall-shiftTop,root,conerFront,conerBack,sheetZ,sheetXBase)
+        self.bot_top("Top",h-wall-shiftTop,root,conerFront,conerBack,sheetZ,sheetXBase)
             
-        #self.left_right("Right",(w-wall)/2,       root,sheetXBase,sheetXFront)
-        #self.left_right("Left",-(w-wall)/2-wall, root,sheetXBase,sheetXFront)
+        self.left_right("Right",(w-wall)/2,       root,sheetXBase,sheetXFront)
+        self.left_right("Left",-(w-wall)/2-wall, root,sheetXBase,sheetXFront)
             
-        #self.front_back("Back",conerBack,        root,sheetXFront,sheetZ)
-        #self.front_back("Front",-conerFront-wall, root,sheetXFront,sheetZ)
+        self.front_back("Back",conerBack,        root,sheetXFront,sheetZ)
+        self.front_back("Front",-conerFront-wall, root,sheetXFront,sheetZ)
      
-        
-        #TO-DELETE
-        #print(root.bRepBodies.count)
-        
-        
-        
         #Cut
         CombineCutFeats = features.combineFeatures          
         
@@ -305,15 +299,13 @@ class BOX:
         for comp in list(componentNameMap.values()):
             for body in comp.bRepBodies:
                 allbodies.add(body)
-        
-        #ui.messageBox("Total {} bodies under root component".format(allbodies.count))
-        
+                
         #Cut Right
-        CombineCutInput = root.features.combineFeatures.createInput(root.bRepBodies.item(2), ToolBodies)
-        CombineCutInput = root.features.combineFeatures.createInput(allbodies.item(0), allbodies)
-        CombineCutInput.operation = adsk.fusion.FeatureOperations.CutFeatureOperation
-        CombineCutInput.isKeepToolBodies = True
-        CombineCutFeats.add(CombineCutInput)
+#        CombineCutInput = root.features.combineFeatures.createInput(root.bRepBodies.item(2), ToolBodies)
+#        CombineCutInput = root.features.combineFeatures.createInput(allbodies.item(0), allbodies)
+#        CombineCutInput.operation = adsk.fusion.FeatureOperations.CutFeatureOperation
+#        CombineCutInput.isKeepToolBodies = True
+#        CombineCutFeats.add(CombineCutInput)
         
         #Cut Left
 #        CombineCutInput = root.features.combineFeatures.createInput(root.bRepBodies.item(3), ToolBodies )
@@ -401,6 +393,7 @@ class BOX:
         for prof in sketch.profiles:
             profs.add(prof)
             
+        #print(profs.count)
         extrudeInput = extrudes.createInput(profs[0], adsk.fusion.FeatureOperations.NewBodyFeatureOperation)
         distExtrude = adsk.core.ValueInput.createByReal(self.wall)   
         extrudeInput.setDistanceExtent(False, distExtrude)
@@ -417,7 +410,6 @@ class BOX:
         
     def front_back(self,_name,offset,root,sheetXFront,sheetZ):
         #Component rename
-        print(_name)
         side = createNewComponent(root) 
         side.name = _name        
              
@@ -474,8 +466,7 @@ class BOX:
 #        profs.removeByIndex(5)
 #        profs.removeByIndex(6)
    
-        
-        print(profs.count)
+   
 #        count = profs.count
 #        for all in profs:
 #            areaProf = profs[count-1].areaProperties(adsk.fusion.CalculationAccuracy.MediumCalculationAccuracy).perimeter
@@ -518,57 +509,63 @@ class BOX:
         
         lines = sketch.sketchCurves.sketchLines
         
-        #   half of base from origin to front
-        baseFrontPoint1 = adsk.core.Point3D.create(-(self.w-self.wall)/2,0,offset)
-        baseFrontPoint2 = adsk.core.Point3D.create((self.w-self.wall)/2,conerFront,offset)
-        baseFrontToCut = lines.addTwoPointRectangle(baseFrontPoint1,baseFrontPoint2)
-        baseFrontToCut.item(0).deleteMe()
         #   half of base from origin to back
+        baseBackPoint0 = adsk.core.Point3D.create(0,conerBack,offset) #MidPoint
         baseBackPoint1 = adsk.core.Point3D.create(-(self.w-self.wall)/2,0,offset)
-        baseBackPoint2 = adsk.core.Point3D.create((self.w-self.wall)/2,-conerBack,offset)
+        baseBackPoint2 = adsk.core.Point3D.create((self.w-self.wall)/2,conerBack,offset)
         baseBackToCut = lines.addTwoPointRectangle(baseBackPoint1,baseBackPoint2)
         baseBackToCut.item(0).deleteMe()
+        #   half of base from origin to front
+        baseFrontPoint0 = adsk.core.Point3D.create(0,-conerFront,offset) #MidPoint
+        baseFrontPoint1 = adsk.core.Point3D.create(-(self.w-self.wall)/2,0,offset)
+        baseFrontPoint2 = adsk.core.Point3D.create((self.w-self.wall)/2,-conerFront,offset)
+        baseFrontToCut = lines.addTwoPointRectangle(baseFrontPoint1,baseFrontPoint2)
+        baseFrontToCut.item(0).deleteMe()
         # sheetZ for back
-        point1 = adsk.core.Point3D.create(0,conerFront,offset)
-        point2 = adsk.core.Point3D.create(sheetZ,conerFront-self.wall,offset)
+        point1 = adsk.core.Point3D.create(0,conerBack,offset)
+        point2 = adsk.core.Point3D.create(sheetZ,conerBack-self.wall,offset)  #ToRight
+        point3 = adsk.core.Point3D.create(-sheetZ,conerBack-self.wall,offset) #ToLeft
         rectangleToCut = lines.addCenterPointRectangle(point1,point2)
-        rectangleToCut.item(0).deleteMe()
-        rectangleToCut.item(1).trim(point2)
-        rectangleToCut.item(3).trim(point1)
+        rectangleToCut.item(0).deleteMe() #ToFront
+        rectangleToCut.item(1).trim(point3, False) #Correct ToLeft
+        rectangleToCut.item(3).trim(point2, False) #Correct ToRight
         # sheetZ for front
-        point1 = adsk.core.Point3D.create(0,-conerBack,offset)
+        point1 = adsk.core.Point3D.create(0,-conerBack,offset) #MidPoint
         point2 = adsk.core.Point3D.create(sheetZ,-conerBack-self.wall,offset)
-        point3 = adsk.core.Point3D.create(-conerBack, 0,offset)
-        point4 = adsk.core.Point3D.create(-conerBack-self.wall,sheetZ,offset)
+        point3 = adsk.core.Point3D.create(sheetZ,-conerBack+self.wall,offset) #ToRight
+        point4 = adsk.core.Point3D.create(-sheetZ,-conerBack+self.wall,offset) #ToLeft
         rectangleToCut = lines.addCenterPointRectangle(point1,point2)
         rectangleToCut.item(2).deleteMe()
-        rectangleToCut.item(1).trim(point1) #Correct
-        rectangleToCut.item(3).trim(point4) #Correct
+        rectangleToCut.item(1).trim(point3, False) #Correct
+        rectangleToCut.item(3).trim(point4, False) #Correct
         # sheetXBase for left
         point1 = adsk.core.Point3D.create(-(self.w-self.wall)/2,0,offset)
         point2 = adsk.core.Point3D.create((-(self.w-self.wall)/2)-self.wall,sheetXBase,offset)
         point3 = adsk.core.Point3D.create(0,-(self.w-self.wall)/2,offset)
         rectangleToCut = lines.addCenterPointRectangle(point1,point2)
         rectangleToCut.item(1).deleteMe()
-        rectangleToCut.item(0).trim(point1)
-        rectangleToCut.item(2).trim(point3)
+        rectangleToCut.item(0).trim(point1, False)
+        rectangleToCut.item(2).trim(point3, False)
         # sheetXBase for Right
         point1 = adsk.core.Point3D.create((self.w-self.wall)/2,0,offset)
         point2 = adsk.core.Point3D.create(((self.w-self.wall)/2)+self.wall,sheetXBase,offset)
         point3 = adsk.core.Point3D.create(0,(self.w-self.wall)/2,offset)
         rectangleToCut = lines.addCenterPointRectangle(point1,point2)
         rectangleToCut.item(1).deleteMe() 
-        rectangleToCut.item(0).trim(point1) #Correct
-        rectangleToCut.item(2).trim(point3)
+        rectangleToCut.item(0).trim(point1, False) #Correct
+        rectangleToCut.item(2).trim(point3, False)
         
         #  Trim rest of lines
-        baseFrontToCut.item(1).trim(baseFrontPoint1) #Correct    
-        #baseFrontToCut.item(2) #Top
-        baseFrontToCut.item(3).trim(baseFrontPoint1) #Correct
+        baseBackToCut.item(1).trim(baseBackPoint1) #Correct RIGHT 
+        baseBackToCut.item(3).trim(baseBackPoint1) #Correct LEFT
         
-        baseBackToCut.item(1).trim(baseBackPoint1) #Correct
-        #baseBackToCut.item(2).deleteMe() #Bottom
-        baseBackToCut.item(3).trim(baseBackPoint1) #Correct
+        baseFrontToCut.item(1).trim(baseFrontPoint1) #Correct RIGHT
+        baseFrontToCut.item(3).trim(baseFrontPoint1) #Correct LEFT
+        
+        baseBackToCut.item(2).trim(baseBackPoint0) #Correct BACK
+        baseFrontToCut.item(2).trim(baseFrontPoint0) #Correct FRONT 
+        
+        #sketch.sketchPoints.add(baseBackPoint0) #Draw a test dot
         
         extrudes = side.features.extrudeFeatures
         #prof = sketch.profiles[0]
@@ -626,7 +623,7 @@ def paramExists(design, paramName):
     
 def run(context):
     try:
-        
+                
         userParams()
         
         if not design:
