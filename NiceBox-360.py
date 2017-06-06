@@ -425,6 +425,15 @@ class BOX:
         
         #axe = self.h-self.shiftTop-self.wall/2   THIS is important                                                              
         self.rectForBox(sketch,offset, cX= 0,   cY= self.h-self.shiftTop-self.wall/2,  w= sheetZ, h= (self.wall-self.kerf)/2);
+        
+        if(mill > 0.0):
+            r=mill/2.0
+            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(-(self.w-self.wall)/2,self.h/2+sheetXFront+r,offset),r)
+            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(-(self.w-self.wall)/2,self.h/2-sheetXFront-r,offset),r)
+            
+            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create((self.w-self.wall)/2,self.h/2+sheetXFront+r,offset),r)
+            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create((self.w-self.wall)/2,self.h/2-sheetXFront-r,offset),r)
+            
                                                                 
         extrudes = side.features.extrudeFeatures
         #prof = sketch.profiles[0]
@@ -435,7 +444,7 @@ class BOX:
             profs.add(prof)
         print(profs.count)
    
-        extrudeInput = extrudes.createInput(profs[0], adsk.fusion.FeatureOperations.NewBodyFeatureOperation)
+        extrudeInput = extrudes.createInput(profs, adsk.fusion.FeatureOperations.NewBodyFeatureOperation)
         distExtrude = adsk.core.ValueInput.createByReal(self.wall)   
         extrudeInput.setDistanceExtent(False, distExtrude)
         
@@ -519,6 +528,19 @@ class BOX:
         baseFrontToCut.item(2).trim(baseFrontPoint0) #Correct FRONT 
         
         #sketch.sketchPoints.add(baseBackPoint0) #Draw a test dot
+        if(mill > 0.0):
+            r=mill/2.0
+            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(sheetZ+r,conerFront,offset),r)
+            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(-sheetZ-r,conerFront,offset),r)
+            
+            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(sheetZ+r,-conerBack,offset),r)
+            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(-sheetZ-r,-conerBack,offset),r)
+            
+            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create((self.w-self.wall)/2,sheetXBase+r,offset),r)
+            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create((self.w-self.wall)/2,-sheetXBase-r,offset),r)
+            
+            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(-(self.w-self.wall)/2,sheetXBase+r,offset),r)
+            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(-(self.w-self.wall)/2,-sheetXBase-r,offset),r)
         
         extrudes = side.features.extrudeFeatures
         #prof = sketch.profiles[0]
