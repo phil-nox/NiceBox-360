@@ -3,6 +3,7 @@
 
 
 import adsk.core, adsk.fusion, traceback
+import os, tempfile
 
 defaultBoxName = 'Box'
 defaultWall = 0.3
@@ -529,7 +530,39 @@ class BOX:
         
         #Body rename
         sideBody = side.bRepBodies.item(side.bRepBodies.count-1)
-        sideBody.name = _name         
+        sideBody.name = _name     
+        
+        #tmp_dir = tempfile.TemporaryDirectory()
+        #perimeter_dxf_path = os.path.join(tmp_dir.name, 'perimeter_sketch.dxf')
+        #wasitsuccessful = sketch.saveAsDXF(perimeter_dxf_path)
+        #wasitsuccessful = sketch.saveAsDXF('%UserProfile%\\Desktop\\mydxf.dxf')
+        #wasitsuccessful = sketch.saveAsDXF("%UserProfile%\\AppData\\Roaming\\Autodesk\\Autodesk Fusion 360\\API\\Scripts\\NiceBox-360\\mydxf.dxf")
+        #print(wasitsuccessful)
+        
+#C:\Users\qwsa\AppData\Roaming\Autodesk\Autodesk Fusion 360\API\Scripts\NiceBox-360       
+        
+        #sketch.saveAsDXF("C:\\Users\\qwsa\\AppData\\Roaming\\Autodesk\\Autodesk Fusion 360\\API\\Scripts\\NiceBox-360\\123.dxf")
+        #sketch.saveAsDXF("C:\\Users\\qwsa\\Desktop\\123.dxf") #Works
+        #dxf_path = os.path.join(os.environ['USERPROFILE'], "Desktop", "DXF", _name + ".dxf")
+
+#        adsk.doEvents()
+#        file_picker = ui.createFileDialog()
+#        file_picker.isMultiSelectEnabled = False
+#        file_picker.filter = 'DXF files (*.dxf);;All files (*.*)'
+#        file_picker.title = 'Save Laser Path to DXF File'
+#        file_picker.initialFilename = '{}.dxf'.format(_name)
+#        dirName = file_picker.initialDirectory
+#        if file_picker.showSave() == adsk.core.DialogResults.DialogOK:
+#            print(dirName)
+        
+            #dxf_path = os.path.join(os.environ['USERPROFILE'], "Desktop", _name + ".dxf")
+            #dxf_path = os.path.join(os.environ['USERPROFILE'], "Desktop", _name + ".dxf")
+        #sketch.saveAsDXF(file_picker.initialFilename)           
+        #sketch.saveAsDXF("%UserProfile%\\Desktop\\123.dxf")        
+        dxf_path = os.path.join(os.environ['USERPROFILE'], "Desktop", _name + ".dxf")
+        sketch.saveAsDXF(dxf_path)
+        #print(os.environ['USERPROFILE'])
+        print(dxf_path)
         
         return sideExtrude
 
