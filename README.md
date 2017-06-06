@@ -54,14 +54,14 @@ For Mac:
 # ToDo List
 | Feature                                                                   | Comment                      |   Status    |
 | ------------------------------------------------------------------------- |:-----------------------------| -----------:|
-| **Renaming:** Create bodies in separate components with appropriate names | **_-BoxName_** parameter     | 90% Done    |
-| **Fix combine** Already replaced by Extrude from sketches                 | Need code refactoring        | 90% Done    |
-| **Parameters** Add all inputs to user parameters                          | No code interaction          | 25% Done    |
-| **Milling:**  Add special holes for mill tool                             | Need to add validations      | 40% Done    |
-| **Patterns:**  Add patterns saving in file                                | DWG / DXF                    | 10% Done    |
-| **Viewer:**  Add View API for demonstration                               | Check Autodesk updates       | 25% Done    |
-| **instructables.com:**  Add instruction to the website                    | Need Viewer                  | 25% Done    |
-| **Multiple spikes:**  Add the ability to change the number of spikes      |                              | 10% Done    |
+| **Renaming:** Create bodies in separate components with appropriate names | **_-BoxName_** parameter     | 90%  Done   |
+| **Fix combine** Already replaced by Extrude from sketches                 | Need code refactoring        | 100% Done   |
+| **Parameters** Add all inputs to user parameters                          | No code interaction          | 25%  Done   |
+| **Milling:**  Add special holes for mill tool                             | Need to add validations      | 60%  Done   |
+| **Patterns:**  Add patterns saving in file                                | Need to add custom folder    | 90%  Done   |
+| **Viewer:**  Add View API for demonstration                               | Check Autodesk updates       | 25%  Done   |
+| **instructables.com:**  Add instruction to the website                    | Need Viewer                  | 25%  Done   |
+| **Multiple spikes:**  Add the ability to change the number of spikes      |                              | 10%  Done   |
 
 
 
