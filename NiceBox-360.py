@@ -12,6 +12,8 @@ defaultD = 10
 defaultKerf = 0.03
 defaultShiftTotal = 1
 defaultSheetAlpha = 0.3
+defaultMill = 0.2
+mill = 0.2
 
 # global set of event handlers to keep them referenced for the duration of the command
 handlers = []
@@ -288,6 +290,38 @@ class BOX:
         
 #        print(root.bRepBodies.count)     
 #        print(root.sketches.count)    
+    def rectForBox(self, sketch, offset, cX,cY,w,h):
+        #make rectangle 
+        sketch.sketchCurves.sketchLines.addCenterPointRectangle(adsk.core.Point3D.create(cX,cY,offset),adsk.core.Point3D.create(cX+w,cY+h,offset))  
+        
+        #make mill's holes
+        #mill = self.mill
+        yMill = True 
+        
+        if(mill>0.0):
+            r=mill/2.0
+            if(yMill):
+                if(w>h):
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w-r, cY+h, offset), r)
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w-r, cY-h, offset), r)
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX-w+r, cY-h, offset), r)
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX-w+r, cY+h, offset), r)
+                else:
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w, cY+h-r, offset), r)
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w, cY-h+r, offset), r)
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX-w, cY-h+r, offset), r)
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX-w, cY+h-r, offset), r)
+            else:
+                if(w>h):
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w, cY+h-r, offset), r)
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w, cY-h+r, offset), r)
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX-w, cY-h+r, offset), r)
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX-w, cY+h-r, offset), r)
+                else:
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w-r, cY+h, offset), r)
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w-r, cY-h, offset), r)
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX-w+r, cY-h, offset), r)
+                    sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX-w+r, cY+h, offset), r)
     
     
     def left_right(self,_name,offset,root,sheetXBase,sheetXFront):
@@ -305,37 +339,22 @@ class BOX:
         
         lines.addTwoPointRectangle(adsk.core.Point3D.create(self.d/2,self.h,offset),adsk.core.Point3D.create(-self.d/2,0,offset))
         
-        #axe = self.shiftBottom+self.wall/2   THIS is important
-        lines.addCenterPointRectangle(adsk.core.Point3D.create( 0,                              \
-                                                                self.shiftBottom+self.wall/2,   \
-                                                                offset),                        \
-                                      adsk.core.Point3D.create( sheetXBase, \
-                                                                self.shiftBottom+self.wall/2    +(self.wall-self.kerf)/2,      \
-                                                                offset))
         
-        #axe = self.h-self.shiftTop-self.wall/2   THIS is important
-        lines.addCenterPointRectangle(adsk.core.Point3D.create( 0,                              \
-                                                                self.h-self.shiftTop-self.wall/2,   \
-                                                                offset),                        \
-                                      adsk.core.Point3D.create( sheetXBase, \
-                                                                self.h-self.shiftTop-self.wall/2    +(self.wall-self.kerf)/2,      \
-                                                                offset))
+        #axe = self.shiftBottom+self.wall/2   THIS is important
+        self.rectForBox(sketch,offset, cX= 0,   cY= self.shiftBottom+self.wall/2,  w= sheetXBase, h= (self.wall-self.kerf)/2);
+        
+        
+        #axe = self.h-self.shiftTop-self.wall/2   THIS is important                                                                 
+        self.rectForBox(sketch,offset, cX= 0,   cY= self.h-self.shiftTop-self.wall/2,  w= sheetXBase, h= (self.wall-self.kerf)/2);
+              
+                                                  
+        #axe = self.d/2-self.shiftBack-self.wall/2   THIS is important
+        self.rectForBox(sketch,offset, cX= self.d/2-self.shiftBack-self.wall/2,   cY= self.h/2,  w= (self.wall-self.kerf)/2, h= sheetXFront);                                               
+            
                                                                 
         #axe = self.d/2-self.shiftBack-self.wall/2   THIS is important
-        lines.addCenterPointRectangle(adsk.core.Point3D.create( self.d/2-self.shiftBack-self.wall/2,                  \
-                                                                self.h/2,   \
-                                                                offset),                        \
-                                      adsk.core.Point3D.create( self.d/2-self.shiftBack-self.wall/2    +(self.wall-self.kerf)/2, \
-                                                                self.h/2+sheetXFront,\
-                                                                offset))
-                                                                
-        #axe = self.d/2-self.shiftBack-self.wall/2   THIS is important
-        lines.addCenterPointRectangle(adsk.core.Point3D.create( -self.d/2+self.shiftFront+self.wall/2,                  \
-                                                                self.h/2,   \
-                                                                offset),                        \
-                                      adsk.core.Point3D.create( -self.d/2+self.shiftFront+self.wall/2    -(self.wall-self.kerf)/2, \
-                                                                self.h/2+sheetXFront,\
-                                                                offset))
+        self.rectForBox(sketch,offset, cX= -self.d/2+self.shiftFront+self.wall/2,   cY= self.h/2,  w= (self.wall-self.kerf)/2, h= sheetXFront);                                                         
+                      
         
         extrudes = side.features.extrudeFeatures
         #prof = sketch.profiles[0]
@@ -400,22 +419,12 @@ class BOX:
         mainRectangle.item(1).trim(point1, False) #Right
                 
         #   hole for the top
-        #axe = self.h-self.shiftTop-self.wall/2   THIS is important
-        lines.addCenterPointRectangle(adsk.core.Point3D.create( 0,                              \
-                                                                self.h-self.shiftTop-self.wall/2,   \
-                                                                offset),                        \
-                                      adsk.core.Point3D.create( sheetZ, \
-                                                                self.h-self.shiftTop-self.wall/2    +(self.wall-self.kerf)/2,      \
-                                                                offset))
-                                                                
-        #   hole for the bottom
         #axe = self.shiftBottom+self.wall/2   THIS is important
-        lines.addCenterPointRectangle(adsk.core.Point3D.create( 0,                              \
-                                                                self.shiftBottom+self.wall/2,   \
-                                                                offset),                        \
-                                      adsk.core.Point3D.create( sheetZ, \
-                                                                self.shiftBottom+self.wall/2    +(self.wall-self.kerf)/2,      \
-                                                                offset))
+        self.rectForBox(sketch,offset, cX= 0,   cY= self.shiftBottom+self.wall/2,  w= sheetZ, h= (self.wall-self.kerf)/2);
+        
+        
+        #axe = self.h-self.shiftTop-self.wall/2   THIS is important                                                              
+        self.rectForBox(sketch,offset, cX= 0,   cY= self.h-self.shiftTop-self.wall/2,  w= sheetZ, h= (self.wall-self.kerf)/2);
                                                                 
         extrudes = side.features.extrudeFeatures
         #prof = sketch.profiles[0]
