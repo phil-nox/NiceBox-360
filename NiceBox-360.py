@@ -3,6 +3,7 @@
 
 
 import adsk.core, adsk.fusion, traceback
+import os, tempfile
 
 defaultBoxName = 'Box'
 defaultWall = 0.3
@@ -405,6 +406,8 @@ class BOX:
         sideBody = side.bRepBodies.item(side.bRepBodies.count-1)
         sideBody.name = _name  
     
+        saveToDXF(sketch, _name)    
+    
         return sideExtrude
         
     def front_back(self,_name,offset,root,sheetXFront,sheetZ):
@@ -503,6 +506,8 @@ class BOX:
         #Body rename
         sideBody = side.bRepBodies.item(side.bRepBodies.count-1)
         sideBody.name = _name 
+        
+        saveToDXF(sketch, _name)
         
         return sideExtrude
         
@@ -646,9 +651,25 @@ class BOX:
         
         #Body rename
         sideBody = side.bRepBodies.item(side.bRepBodies.count-1)
-        sideBody.name = _name         
+        sideBody.name = _name     
+                        
+        saveToDXF(sketch, _name)
         
         return sideExtrude
+
+#Save to DXF
+def saveToDXF(sketch, name):
+    # Save to DXF
+        #Path to needed folder
+        path = os.path.expanduser("~\Desktop\DXF")
+        #Check that folder
+        
+        if not os.path.exists(path):
+            os.makedirs(path)
+            
+        # Save sketch to the folder
+        dxf_path = os.path.join(os.environ['USERPROFILE'], path, name + ".dxf")
+        sketch.saveAsDXF(dxf_path)
 
 # Add data to User Parameters
 def userParams():
