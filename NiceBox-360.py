@@ -301,32 +301,55 @@ class BOX:
         
         if(mill>0.0):
             r=mill/2.0
+            
             if(yMill):
                 if(w>h):
-                    cir0 = sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w-r, cY+h, offset), r)
-                    cir1 = sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w-r, cY-h, offset), r)
-                    cir2 = sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX-w+r, cY-h, offset), r)
-                    cir3 = sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX-w+r, cY+h, offset), r)
+                    pnt0 = adsk.core.Point3D.create(cX+w-r, cY+h, offset)
+                    pnt1 = adsk.core.Point3D.create(cX+w-r, cY-h, offset)
+                    pnt2 = adsk.core.Point3D.create(cX-w+r, cY-h, offset)
+                    pnt3 = adsk.core.Point3D.create(cX-w+r, cY+h, offset)
                 else:
-                    cir0 = sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w, cY+h-r, offset), r)
-                    cir1 = sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w, cY-h+r, offset), r)
-                    cir2 = sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX-w, cY-h+r, offset), r)
-                    cir3 = sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX-w, cY+h-r, offset), r)
+                    pnt0 = adsk.core.Point3D.create(cX+w, cY+h-r, offset)
+                    pnt1 = adsk.core.Point3D.create(cX+w, cY-h+r, offset)
+                    pnt2 = adsk.core.Point3D.create(cX-w, cY-h+r, offset)
+                    pnt3 = adsk.core.Point3D.create(cX-w, cY+h-r, offset)
             else:
                 if(w>h):
-                    cir0 = sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w, cY+h-r, offset), r)
-                    cir1 = sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w, cY-h+r, offset), r)
-                    cir2 = sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX-w, cY-h+r, offset), r)
-                    cir3 = sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX-w, cY+h-r, offset), r)
+                    pnt0 = adsk.core.Point3D.create(cX+w, cY+h-r, offset)
+                    pnt1 = adsk.core.Point3D.create(cX+w, cY-h+r, offset)
+                    pnt2 = adsk.core.Point3D.create(cX-w, cY-h+r, offset)
+                    pnt3 = adsk.core.Point3D.create(cX-w, cY+h-r, offset)
                 else:
-                    cir0 = sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w-r, cY+h, offset), r)
-                    cir1 = sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w-r, cY-h, offset), r)
-                    cir2 = sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX-w+r, cY-h, offset), r)
-                    cir3 = sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX-w+r, cY+h, offset), r)
+                    pnt0 = adsk.core.Point3D.create(cX+w-r, cY+h, offset)
+                    pnt1 = adsk.core.Point3D.create(cX+w-r, cY-h, offset)
+                    pnt2 = adsk.core.Point3D.create(cX-w+r, cY-h, offset)
+                    pnt3 = adsk.core.Point3D.create(cX-w+r, cY+h, offset)
+                    
+            cir0 = sketch.sketchCurves.sketchCircles.addByCenterRadius(pnt0, r)
+            cir1 = sketch.sketchCurves.sketchCircles.addByCenterRadius(pnt1, r)
+            cir2 = sketch.sketchCurves.sketchCircles.addByCenterRadius(pnt2, r)
+            cir3 = sketch.sketchCurves.sketchCircles.addByCenterRadius(pnt3, r)
+            
             if(toTrim):
-                sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w-r, cY+h-r, offset),0.02)
+                #sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w-r, cY+h-r, offset),0.02)
                 #rect.item(0).trim(adsk.core.Point3D.create(cX+w-r, cY+h-r, offset),False)
-                cir0.item(0).trim(adsk.core.Point3D.create(cX+w-r, cY+h-r, offset),False)
+                #sketch.sketchCurves.sketchCircles.item(0).trim(adsk.core.Point3D.create(cX+w-r, cY+h-r, offset),False)
+                
+                if(w>h):                
+                    rect.item(0).trim(pnt0)
+                    rect.item(0).trim(pnt3)
+                    rect.item(2).trim(pnt1)
+                    rect.item(2).trim(pnt2)
+                else:
+                    rect.item(1).trim(pnt0)
+                    rect.item(1).trim(pnt1)
+                    rect.item(3).trim(pnt3)
+                    rect.item(3).trim(pnt2)
+            
+                cir0.trim(adsk.core.Point3D.create(cX,cY,offset))
+                cir1.trim(adsk.core.Point3D.create(cX,cY,offset))
+                cir2.trim(adsk.core.Point3D.create(cX,cY,offset))
+                cir3.trim(adsk.core.Point3D.create(cX,cY,offset))
                 
     
     def left_right(self,_name,offset,root,sheetXBase,sheetXFront):
@@ -386,6 +409,8 @@ class BOX:
         
     def front_back(self,_name,offset,root,sheetXFront,sheetZ):
         #Component rename
+        toTrim = True        
+        
         side = createNewComponent(root) 
         side.name = _name        
              
@@ -409,7 +434,7 @@ class BOX:
         rectangleToCut.item(0).trim(point4, False) #Top
         rectangleToCut.item(2).trim(point3, False) #Bottom
         
-        mainRectangle.item(3).trim(point1, False) #Left
+        leftLine = mainRectangle.item(3).trim(point1, False) #Left
         
         # sheetXFront for Right
         point1 = adsk.core.Point3D.create((self.w-self.wall)/2,self.h/2,offset)
@@ -421,7 +446,7 @@ class BOX:
         rectangleToCut.item(0).trim(point3, False) #Top
         rectangleToCut.item(2).trim(point4, False) #Bottom
         
-        mainRectangle.item(1).trim(point1, False) #Right
+        rightLine = mainRectangle.item(1).trim(point1, False) #Right
                 
         #   hole for the top
         #axe = self.shiftBottom+self.wall/2   THIS is important
@@ -433,12 +458,30 @@ class BOX:
         
         if(mill > 0.0):
             r=mill/2.0
-            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(-(self.w-self.wall)/2,self.h/2+sheetXFront+r,offset),r)
-            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(-(self.w-self.wall)/2,self.h/2-sheetXFront-r,offset),r)
             
-            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create((self.w-self.wall)/2,self.h/2+sheetXFront+r,offset),r)
-            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create((self.w-self.wall)/2,self.h/2-sheetXFront-r,offset),r)
+            tmpCenter = adsk.core.Point3D.create(-(self.w-self.wall)/2,self.h/2+sheetXFront+r,offset)
+            tmp = sketch.sketchCurves.sketchCircles.addByCenterRadius(tmpCenter,r)
+            if(toTrim) : 
+                tmp.trim(adsk.core.Point3D.create(-(self.w-self.wall)/2-r,self.h/2+sheetXFront+r,offset))
+                leftLine.item(1).trim(tmpCenter)
             
+            tmpCenter = adsk.core.Point3D.create(-(self.w-self.wall)/2,self.h/2-sheetXFront-r,offset)
+            tmp = sketch.sketchCurves.sketchCircles.addByCenterRadius(tmpCenter,r)
+            if(toTrim) : 
+                tmp.trim(adsk.core.Point3D.create(-(self.w-self.wall)/2-r,self.h/2-sheetXFront-r,offset))
+                leftLine.item(0).trim(tmpCenter)
+            
+            tmpCenter = adsk.core.Point3D.create((self.w-self.wall)/2,self.h/2+sheetXFront+r,offset)
+            tmp = sketch.sketchCurves.sketchCircles.addByCenterRadius(tmpCenter,r)
+            if(toTrim) : 
+                tmp.trim(adsk.core.Point3D.create((self.w-self.wall)/2+r,self.h/2+sheetXFront+r,offset))
+                rightLine.item(0).trim(tmpCenter)
+            
+            tmpCenter = adsk.core.Point3D.create((self.w-self.wall)/2,self.h/2-sheetXFront-r,offset)      
+            tmp = sketch.sketchCurves.sketchCircles.addByCenterRadius(tmpCenter,r)
+            if(toTrim) : 
+                tmp.trim(adsk.core.Point3D.create((self.w-self.wall)/2+r,self.h/2-sheetXFront-r,offset) )
+                rightLine.item(1).trim(tmpCenter)
                                                                 
         extrudes = side.features.extrudeFeatures
         #prof = sketch.profiles[0]
@@ -465,6 +508,8 @@ class BOX:
         
     def bot_top(self,_name,offset,root,conerFront,conerBack,sheetZ,sheetXBase):
         #Component rename
+        toTrim = True
+        
         side = createNewComponent(root) 
         side.name = _name  
         
@@ -523,29 +568,65 @@ class BOX:
         rectangleToCut.item(2).trim(point3, False)
         
         #  Trim rest of lines
-        baseBackToCut.item(1).trim(baseBackPoint1) #Correct RIGHT 
-        baseBackToCut.item(3).trim(baseBackPoint1) #Correct LEFT
+        rightBack = baseBackToCut.item(1).trim(baseBackPoint1) #Correct RIGHT 
+        leftBack = baseBackToCut.item(3).trim(baseBackPoint1) #Correct LEFT
         
-        baseFrontToCut.item(1).trim(baseFrontPoint1) #Correct RIGHT
-        baseFrontToCut.item(3).trim(baseFrontPoint1) #Correct LEFT
+        rightFront = baseFrontToCut.item(1).trim(baseFrontPoint1) #Correct RIGHT
+        leftFront = baseFrontToCut.item(3).trim(baseFrontPoint1) #Correct LEFT
         
-        baseBackToCut.item(2).trim(baseBackPoint0) #Correct BACK
-        baseFrontToCut.item(2).trim(baseFrontPoint0) #Correct FRONT 
+        backLine = baseBackToCut.item(2).trim(baseBackPoint0) #Correct BACK
+        frontLine = baseFrontToCut.item(2).trim(baseFrontPoint0) #Correct FRONT 
         
         #sketch.sketchPoints.add(baseBackPoint0) #Draw a test dot
         if(mill > 0.0):
             r=mill/2.0
-            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(sheetZ+r,conerFront,offset),r)
-            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(-sheetZ-r,conerFront,offset),r)
+            tmpCenter = adsk.core.Point3D.create(sheetZ+r,conerFront,offset)            
+            tmp = sketch.sketchCurves.sketchCircles.addByCenterRadius(tmpCenter,r)
+            if(toTrim) : 
+                tmp.trim(adsk.core.Point3D.create(sheetZ+r,conerFront+r,offset))
+                backLine.item(0).trim(tmpCenter)
+                  
+            tmpCenter = adsk.core.Point3D.create(-sheetZ-r,conerFront,offset) 
+            tmp = sketch.sketchCurves.sketchCircles.addByCenterRadius(tmpCenter,r)
+            if(toTrim) : 
+                tmp.trim(adsk.core.Point3D.create(-sheetZ-r,conerFront+r,offset))
+                backLine.item(1).trim(tmpCenter)
             
-            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(sheetZ+r,-conerBack,offset),r)
-            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(-sheetZ-r,-conerBack,offset),r)
+            tmpCenter = adsk.core.Point3D.create(sheetZ+r,-conerBack,offset)
+            tmp = sketch.sketchCurves.sketchCircles.addByCenterRadius(tmpCenter,r)
+            if(toTrim) : 
+                tmp.trim(adsk.core.Point3D.create(sheetZ+r,-conerBack-r,offset))
+                frontLine.item(0).trim(tmpCenter)
+                
+            tmpCenter = adsk.core.Point3D.create(-sheetZ-r,-conerBack,offset)
+            tmp = sketch.sketchCurves.sketchCircles.addByCenterRadius(tmpCenter,r)
+            if(toTrim) : 
+                tmp.trim(adsk.core.Point3D.create(-sheetZ-r,-conerBack-r,offset))
+                frontLine.item(1).trim(tmpCenter)
+             
+            tmpCenter = adsk.core.Point3D.create((self.w-self.wall)/2,sheetXBase+r,offset)
+            tmp = sketch.sketchCurves.sketchCircles.addByCenterRadius(tmpCenter,r)
+            if(toTrim) : 
+                tmp.trim(adsk.core.Point3D.create((self.w-self.wall)/2+r,sheetXBase+r,offset))
+                rightBack.item(0).trim(tmpCenter)
+                
+            tmpCenter = adsk.core.Point3D.create((self.w-self.wall)/2,-sheetXBase-r,offset)
+            tmp = sketch.sketchCurves.sketchCircles.addByCenterRadius(tmpCenter,r)
+            if(toTrim) : 
+                tmp.trim(adsk.core.Point3D.create((self.w-self.wall)/2+r,-sheetXBase-r,offset))
+                rightFront.item(0).trim(tmpCenter)
             
-            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create((self.w-self.wall)/2,sheetXBase+r,offset),r)
-            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create((self.w-self.wall)/2,-sheetXBase-r,offset),r)
+            tmpCenter = adsk.core.Point3D.create(-(self.w-self.wall)/2,sheetXBase+r,offset)
+            tmp = sketch.sketchCurves.sketchCircles.addByCenterRadius(tmpCenter,r)
+            if(toTrim) : 
+                tmp.trim(adsk.core.Point3D.create(-(self.w-self.wall)/2-r,sheetXBase+r,offset))
+                leftBack.item(0).trim(tmpCenter)       
             
-            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(-(self.w-self.wall)/2,sheetXBase+r,offset),r)
-            sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(-(self.w-self.wall)/2,-sheetXBase-r,offset),r)
+            tmpCenter = adsk.core.Point3D.create(-(self.w-self.wall)/2,-sheetXBase-r,offset)            
+            tmp = sketch.sketchCurves.sketchCircles.addByCenterRadius(tmpCenter,r)
+            if(toTrim) : 
+                tmp.trim(adsk.core.Point3D.create(-(self.w-self.wall)/2-r,-sheetXBase-r,offset))
+                leftFront.item(0).trim(tmpCenter)
         
         extrudes = side.features.extrudeFeatures
         #prof = sketch.profiles[0]
