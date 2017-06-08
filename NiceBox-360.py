@@ -3,7 +3,7 @@
 
 
 import adsk.core, adsk.fusion, traceback
-import os, tempfile
+import os, tempfile, platform
 
 defaultBoxName = 'Box'
 defaultWall = 0.3
@@ -495,7 +495,7 @@ class BOX:
             profs.add(prof)
         print(profs.count)
    
-        extrudeInput = extrudes.createInput(profs, adsk.fusion.FeatureOperations.NewBodyFeatureOperation)
+        extrudeInput = extrudes.createInput(profs[0], adsk.fusion.FeatureOperations.NewBodyFeatureOperation)
         distExtrude = adsk.core.ValueInput.createByReal(self.wall)   
         extrudeInput.setDistanceExtent(False, distExtrude)
         
@@ -660,16 +660,31 @@ class BOX:
 #Save to DXF
 def saveToDXF(sketch, name):
     # Save to DXF
-        #Path to needed folder
-        path = os.path.expanduser("~\Desktop\DXF")
-        #Check that folder
+        # For Windows
+        if(platform.system() == 'Windows'):
+            #Path to needed folder
+            path = os.path.expanduser("~\Desktop\DXF")
         
-        if not os.path.exists(path):
-            os.makedirs(path)
-            
-        # Save sketch to the folder
-        dxf_path = os.path.join(os.environ['USERPROFILE'], path, name + ".dxf")
-        sketch.saveAsDXF(dxf_path)
+            #Check that folder
+            if not os.path.exists(path):
+                os.makedirs(path)
+                
+            # Save sketch to the folder
+            dxf_path = os.path.join(os.environ['USERPROFILE'], path, name + ".dxf")
+            sketch.saveAsDXF(dxf_path)
+        
+        # For Mac
+        if(platform.system() == 'Darwin'):
+            #Path to needed folder
+            path = os.path.expanduser("~/DXF")
+        
+            #Check that folder
+            if not os.path.exists(path):
+                os.makedirs(path)
+                
+            # Save sketch to the folder
+            dxf_path = os.path.join("", path, name + ".dxf")
+            sketch.saveAsDXF(dxf_path)
 
 # Add data to User Parameters
 def userParams():
