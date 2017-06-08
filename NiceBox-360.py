@@ -663,7 +663,7 @@ def saveToDXF(sketch, name):
         # For Windows
         if(platform.system() == 'Windows'):
             #Path to needed folder
-            path = os.path.expanduser("~\Desktop\DXF")
+            path = os.path.expanduser("~\Desktop\\NiceBox360_DXF")
         
             #Check that folder
             if not os.path.exists(path):
@@ -676,7 +676,7 @@ def saveToDXF(sketch, name):
         # For Mac
         if(platform.system() == 'Darwin'):
             #Path to needed folder
-            path = os.path.expanduser("~/DXF")
+            path = os.path.expanduser("~/NiceBox360_DXF")
         
             #Check that folder
             if not os.path.exists(path):
