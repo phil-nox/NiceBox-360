@@ -14,6 +14,7 @@ defaultKerf = 0.03
 defaultShiftTotal = 1
 defaultSheetAlpha = 0.3
 defaultMill = 0.2
+defaultSaveDXF = False
 
 
 # global set of event handlers to keep them referenced for the duration of the command
@@ -58,6 +59,8 @@ class BoxCommandExecuteHandler(adsk.core.CommandEventHandler):
                     box.kerf = unitsMgr.evaluateExpression(input.expression, "cm")
                 elif input.id == 'mill':
                     box.mill = unitsMgr.evaluateExpression(input.expression, "cm")
+                elif input.id == 'saveDXF':
+                    box.saveDXF = input.value
                 elif input.id == 'shiftTotal':
                     box.shiftTotal = unitsMgr.evaluateExpression(input.expression, "cm")
                     box.shiftTop = unitsMgr.evaluateExpression(input.expression, "cm")
@@ -139,6 +142,9 @@ class BoxCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
 
             initSheetAlpha = adsk.core.ValueInput.createByReal(defaultSheetAlpha)
             inputs.addValueInput('sheetAlpha', 'Tooth Proportions', '', initSheetAlpha)
+            
+            
+            inputs.addBoolValueInput('saveDXF', 'Save DXF', True, '', False)
         except:
             if ui:
                 ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
@@ -159,6 +165,7 @@ class BOX:
         self._shiftBack   = adsk.core.ValueInput.createByReal(defaultShiftTotal)
         self._shiftFront   = adsk.core.ValueInput.createByReal(defaultShiftTotal)
         self._shiftBottom   = adsk.core.ValueInput.createByReal(defaultShiftTotal)
+        self._saveDXF = defaultSaveDXF
 
 
     #properties
@@ -210,6 +217,13 @@ class BOX:
     @mill.setter
     def mill(self, value):
         self._mill = value 
+
+    @property
+    def saveDXF(self):
+        return self._saveDXF
+    @saveDXF.setter
+    def saveDXF(self, value):
+        self._saveDXF = value 
 
     @property
     def shiftTotal(self):
@@ -422,7 +436,8 @@ class BOX:
         sideBody = side.bRepBodies.item(side.bRepBodies.count-1)
         sideBody.name = _name  
     
-        saveToDXF(sketch, _name)    
+        if(self.saveDXF):
+            saveToDXF(sketch, _name)    
     
         return sideExtrude
         
@@ -525,7 +540,8 @@ class BOX:
         sideBody = side.bRepBodies.item(side.bRepBodies.count-1)
         sideBody.name = _name 
         
-        saveToDXF(sketch, _name)
+        if(self.saveDXF):
+            saveToDXF(sketch, _name)
         
         return sideExtrude
         
@@ -672,8 +688,9 @@ class BOX:
         #Body rename
         sideBody = side.bRepBodies.item(side.bRepBodies.count-1)
         sideBody.name = _name     
-                        
-        saveToDXF(sketch, _name)
+        
+        if(self.saveDXF):                
+            saveToDXF(sketch, _name)
         
         return sideExtrude
 
