@@ -14,7 +14,7 @@ defaultKerf = 0.03
 defaultShiftTotal = 1
 defaultSheetAlpha = 0.3
 defaultMill = 0.2
-mill = 0.2
+
 
 # global set of event handlers to keep them referenced for the duration of the command
 handlers = []
@@ -55,7 +55,9 @@ class BoxCommandExecuteHandler(adsk.core.CommandEventHandler):
                 elif input.id == 'd':
                     box.d = unitsMgr.evaluateExpression(input.expression, "cm")
                 elif input.id == 'kerf':
-                    box.kerf = unitsMgr.evaluateExpression(input.expression, "cm") 
+                    box.kerf = unitsMgr.evaluateExpression(input.expression, "cm")
+                elif input.id == 'mill':
+                    box.mill = unitsMgr.evaluateExpression(input.expression, "cm")
                 elif input.id == 'shiftTotal':
                     box.shiftTotal = unitsMgr.evaluateExpression(input.expression, "cm")
                     box.shiftTop = unitsMgr.evaluateExpression(input.expression, "cm")
@@ -128,6 +130,9 @@ class BoxCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
 
             initKerf = adsk.core.ValueInput.createByReal(defaultKerf)
             inputs.addValueInput('kerf', 'Kerf Laser Cut', 'cm', initKerf)
+            
+            initMill = adsk.core.ValueInput.createByReal(defaultMill)
+            inputs.addValueInput('mill', 'Mill diameter', 'cm', initMill)
 
             initShiftTotal = adsk.core.ValueInput.createByReal(defaultShiftTotal)
             inputs.addValueInput('shiftTotal', 'Shift', 'cm', initShiftTotal)
@@ -147,6 +152,7 @@ class BOX:
         self._w = defaultW
         self._d = adsk.core.ValueInput.createByReal(defaultD)
         self._kerf = defaultKerf
+        self._mill = defaultMill
         self._shiftTotal = adsk.core.ValueInput.createByReal(defaultShiftTotal)
         self._sheetAlpha = adsk.core.ValueInput.createByReal(defaultSheetAlpha)
         self._shiftTop   = adsk.core.ValueInput.createByReal(defaultShiftTotal)
@@ -197,6 +203,13 @@ class BOX:
     @kerf.setter
     def kerf(self, value):
         self._kerf = value  
+
+    @property
+    def mill(self):
+        return self._mill
+    @mill.setter
+    def mill(self, value):
+        self._mill = value 
 
     @property
     def shiftTotal(self):
@@ -253,6 +266,7 @@ class BOX:
         w = self.w
         d = self.d
         kerf = self.kerf
+        mill = self.mill
         shiftTotal = self.shiftTotal
         shiftTop    = self.shiftTotal
         shiftBack   = self.shiftTotal
@@ -299,6 +313,8 @@ class BOX:
         #mill = self.mill
         yMill = True 
         toTrim = True
+        
+        mill = self.mill        
         
         if(mill>0.0):
             r=mill/2.0
@@ -459,6 +475,8 @@ class BOX:
         #axe = self.h-self.shiftTop-self.wall/2   THIS is important                                                              
         self.rectForBox(sketch,offset, cX= 0,   cY= self.h-self.shiftTop-self.wall/2,  w= sheetZ, h= (self.wall-self.kerf)/2);
         
+        mill = self.mill         
+        
         if(mill > 0.0):
             r=mill/2.0
             
@@ -582,6 +600,8 @@ class BOX:
         backLine = baseBackToCut.item(2).trim(baseBackPoint0) #Correct BACK
         frontLine = baseFrontToCut.item(2).trim(baseFrontPoint0) #Correct FRONT 
         
+        
+        mill = self.mill 
         #sketch.sketchPoints.add(baseBackPoint0) #Draw a test dot
         if(mill > 0.0):
             r=mill/2.0
@@ -702,6 +722,8 @@ def userParams():
         design.userParameters.add('defaultD', adsk.core.ValueInput.createByReal(10), "cm", "Depth")
     if not paramExists(design, 'defaultKerf'):
         design.userParameters.add('defaultKerf', adsk.core.ValueInput.createByReal(0.03), "cm", "Kerf")
+    if not paramExists(design, 'defaultMill'):
+        design.userParameters.add('defaultMill', adsk.core.ValueInput.createByReal(0.03), "cm", "Mill")
     if not paramExists(design, 'defaultShiftTotal'):
         design.userParameters.add('defaultShiftTotal', adsk.core.ValueInput.createByReal(1), "cm", "Shift total")
     if not paramExists(design, 'defaultSheetAlpha'):
