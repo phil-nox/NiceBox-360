@@ -29,6 +29,10 @@ _This parameter is a physical thickness of material which you will use for produ
 
 ![Alt text](/resources/Images/Depth.jpg?raw=true "Depth")
 
+**Kerf Laser Cut** Kerf parameter is defined as the width of material that is removed by a cutting process.
+
+![Alt text](/resources/Images/Kerf.jpg?raw=true "Shift")
+
 **Shift** parameter is a value how deep top, bottom, back and front are placed relatively to edge of the box.
 _Good example here is 0mm._
 
