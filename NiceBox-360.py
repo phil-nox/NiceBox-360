@@ -143,8 +143,15 @@ class BoxCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             initSheetAlpha = adsk.core.ValueInput.createByReal(defaultSheetAlpha)
             inputs.addValueInput('sheetAlpha', 'Tooth Proportions', '', initSheetAlpha)
             
+            # Create readonly textbox input
+            if(platform.system() == 'Windows'):
+                 inputs.addTextBoxCommandInput('textBox' + '_textBox', 'DXF path', '~\Desktop\\NiceBox360_DXF', 2, True)
             
-            inputs.addBoolValueInput('saveDXF', 'Save DXF', True, '', False)
+            if(platform.system() == 'Darwin'):
+                inputs.addTextBoxCommandInput('textBox' + '_textBox', 'DXF path', '~/NiceBox360_DXF', 2, True)
+            
+            #inputs.addBoolValueInput('saveDXF', 'Save DXF', True, '', False)
+            
         except:
             if ui:
                 ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
