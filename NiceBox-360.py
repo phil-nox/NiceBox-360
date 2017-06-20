@@ -3,6 +3,7 @@
 
 
 import adsk.core, adsk.fusion, traceback
+import os, tempfile, platform
 
 defaultBoxName = 'Box'
 defaultWall = 0.3
@@ -12,6 +13,9 @@ defaultD = 10
 defaultKerf = 0.03
 defaultShiftTotal = 1
 defaultSheetAlpha = 0.3
+defaultMill = 0.2
+defaultSaveDXF = False
+
 
 # global set of event handlers to keep them referenced for the duration of the command
 handlers = []
@@ -23,6 +27,7 @@ newComp = None
 
 product = app.activeProduct
 design = adsk.fusion.Design.cast(product)
+ 
 
 def createNewComponent(rootComp):
     allOccs = rootComp.occurrences
@@ -51,7 +56,11 @@ class BoxCommandExecuteHandler(adsk.core.CommandEventHandler):
                 elif input.id == 'd':
                     box.d = unitsMgr.evaluateExpression(input.expression, "cm")
                 elif input.id == 'kerf':
-                    box.kerf = unitsMgr.evaluateExpression(input.expression, "cm") 
+                    box.kerf = unitsMgr.evaluateExpression(input.expression, "cm")
+                elif input.id == 'mill':
+                    box.mill = unitsMgr.evaluateExpression(input.expression, "cm")
+                elif input.id == 'saveDXF':
+                    box.saveDXF = input.value
                 elif input.id == 'shiftTotal':
                     box.shiftTotal = unitsMgr.evaluateExpression(input.expression, "cm")
                     box.shiftTop = unitsMgr.evaluateExpression(input.expression, "cm")
@@ -124,12 +133,25 @@ class BoxCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
 
             initKerf = adsk.core.ValueInput.createByReal(defaultKerf)
             inputs.addValueInput('kerf', 'Kerf Laser Cut', 'cm', initKerf)
+            
+            initMill = adsk.core.ValueInput.createByReal(defaultMill)
+            inputs.addValueInput('mill', 'Mill diameter', 'cm', initMill)
 
             initShiftTotal = adsk.core.ValueInput.createByReal(defaultShiftTotal)
             inputs.addValueInput('shiftTotal', 'Shift', 'cm', initShiftTotal)
 
             initSheetAlpha = adsk.core.ValueInput.createByReal(defaultSheetAlpha)
             inputs.addValueInput('sheetAlpha', 'Tooth Proportions', '', initSheetAlpha)
+            
+            # Create readonly textbox input
+            if(platform.system() == 'Windows'):
+                 inputs.addTextBoxCommandInput('textBox' + '_textBox', 'DXF path', '~\Desktop\\NiceBox360_DXF', 2, True)
+            
+            if(platform.system() == 'Darwin'):
+                inputs.addTextBoxCommandInput('textBox' + '_textBox', 'DXF path', '~/NiceBox360_DXF', 2, True)
+            
+            #inputs.addBoolValueInput('saveDXF', 'Save DXF', True, '', False)
+            
         except:
             if ui:
                 ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
@@ -143,12 +165,14 @@ class BOX:
         self._w = defaultW
         self._d = adsk.core.ValueInput.createByReal(defaultD)
         self._kerf = defaultKerf
+        self._mill = defaultMill
         self._shiftTotal = adsk.core.ValueInput.createByReal(defaultShiftTotal)
         self._sheetAlpha = adsk.core.ValueInput.createByReal(defaultSheetAlpha)
         self._shiftTop   = adsk.core.ValueInput.createByReal(defaultShiftTotal)
         self._shiftBack   = adsk.core.ValueInput.createByReal(defaultShiftTotal)
         self._shiftFront   = adsk.core.ValueInput.createByReal(defaultShiftTotal)
         self._shiftBottom   = adsk.core.ValueInput.createByReal(defaultShiftTotal)
+        self._saveDXF = defaultSaveDXF
 
 
     #properties
@@ -193,6 +217,20 @@ class BOX:
     @kerf.setter
     def kerf(self, value):
         self._kerf = value  
+
+    @property
+    def mill(self):
+        return self._mill
+    @mill.setter
+    def mill(self, value):
+        self._mill = value 
+
+    @property
+    def saveDXF(self):
+        return self._saveDXF
+    @saveDXF.setter
+    def saveDXF(self, value):
+        self._saveDXF = value 
 
     @property
     def shiftTotal(self):
@@ -249,6 +287,7 @@ class BOX:
         w = self.w
         d = self.d
         kerf = self.kerf
+        mill = self.mill
         shiftTotal = self.shiftTotal
         shiftTop    = self.shiftTotal
         shiftBack   = self.shiftTotal
@@ -269,30 +308,9 @@ class BOX:
             
         self.left_right("Right",(w-wall)/2,       root,sheetXBase,sheetXFront)
         self.left_right("Left",-(w-wall)/2-wall, root,sheetXBase,sheetXFront)
-            
-        self.front_back("Back",conerBack,        root,sheetXFront,sheetZ)
-        self.front_back("Front",-conerFront-wall, root,sheetXFront,sheetZ)
-     
         
-        #TO-DELETE
-        #print(root.bRepBodies.count)
-        
-        
-        
-        #Cut
-        CombineCutFeats = features.combineFeatures          
-        
-        
-        ToolBodies = adsk.core.ObjectCollection.create()
-#        ToolBodies.add(root.bRepBodies.item(0))
-#        ToolBodies.add(root.bRepBodies.item(1))
-#        ToolBodies.add(root.bRepBodies.item(4))
-#        ToolBodies.add(root.bRepBodies.item(5))
-        
-#        ToolBodies.add(root.bRepBodies.itemByName("Bottom"))
-#        ToolBodies.add(root.bRepBodies.itemByName("Top"))
-#        ToolBodies.add(root.bRepBodies.itemByName("Front"))
-#        ToolBodies.add(root.bRepBodies.itemByName("Back"))
+        self.front_back("Front",conerBack,        root,sheetXFront,sheetZ)
+        self.front_back("Back",-conerFront-wall, root,sheetXFront,sheetZ)
         
         componentNameMap = {}
         componentNameMap[root.name] = root
@@ -306,45 +324,71 @@ class BOX:
             for body in comp.bRepBodies:
                 allbodies.add(body)
         
-        #ui.messageBox("Total {} bodies under root component".format(allbodies.count))
-        
-        #Cut Rigth
-        #CombineCutInput = root.features.combineFeatures.createInput(root.bRepBodies.item(2), ToolBodies)
-#        CombineCutInput = root.features.combineFeatures.createInput(allbodies.item(0), allbodies)
-#        CombineCutInput.operation = adsk.fusion.FeatureOperations.CutFeatureOperation
-#        CombineCutInput.isKeepToolBodies = True
-#        CombineCutFeats.add(CombineCutInput)
-        
-        #Cut Left
-#        CombineCutInput = root.features.combineFeatures.createInput(root.bRepBodies.item(3), ToolBodies )
-#        CombineCutInput.operation = adsk.fusion.FeatureOperations.CutFeatureOperation
-#        CombineCutInput.isKeepToolBodies = True
-#        CombineCutFeats.add(CombineCutInput)
-#        
-#        #Cut Front
-#        ToolBodies = adsk.core.ObjectCollection.create()
-#        ToolBodies.add(root.bRepBodies.item(0))
-#        ToolBodies.add(root.bRepBodies.item(1))
-#        
-#        CombineCutInput = root.features.combineFeatures.createInput(root.bRepBodies.item(4), ToolBodies )
-#        CombineCutInput.operation = adsk.fusion.FeatureOperations.CutFeatureOperation
-#        CombineCutInput.isKeepToolBodies = True
-#        CombineCutFeats.add(CombineCutInput)
-#        
-#        #Cut back
-#        ToolBodies = adsk.core.ObjectCollection.create()
-#        ToolBodies.add(root.bRepBodies.item(0))
-#        ToolBodies.add(root.bRepBodies.item(1))
-#        
-#        CombineCutInput = root.features.combineFeatures.createInput(root.bRepBodies.item(5), ToolBodies )
-#        CombineCutInput.operation = adsk.fusion.FeatureOperations.CutFeatureOperation
-#        CombineCutInput.isKeepToolBodies = True
-#        CombineCutFeats.add(CombineCutInput)
-        
-#        print(root.bRepBodies.count)
-        
+#        print(root.bRepBodies.count)     
 #        print(root.sketches.count)    
-    
+    def rectForBox(self, sketch, offset, cX,cY,w,h):
+        #make rectangle 
+        rect = sketch.sketchCurves.sketchLines.addCenterPointRectangle(adsk.core.Point3D.create(cX,cY,offset),adsk.core.Point3D.create(cX+w,cY+h,offset))  
+        
+        #make mill's holes
+        #mill = self.mill
+        yMill = True 
+        toTrim = True
+        
+        mill = self.mill        
+        
+        if(mill>0.0):
+            r=mill/2.0
+            
+            if(yMill):
+                if(w>h):
+                    pnt0 = adsk.core.Point3D.create(cX+w-r, cY+h, offset)
+                    pnt1 = adsk.core.Point3D.create(cX+w-r, cY-h, offset)
+                    pnt2 = adsk.core.Point3D.create(cX-w+r, cY-h, offset)
+                    pnt3 = adsk.core.Point3D.create(cX-w+r, cY+h, offset)
+                else:
+                    pnt0 = adsk.core.Point3D.create(cX+w, cY+h-r, offset)
+                    pnt1 = adsk.core.Point3D.create(cX+w, cY-h+r, offset)
+                    pnt2 = adsk.core.Point3D.create(cX-w, cY-h+r, offset)
+                    pnt3 = adsk.core.Point3D.create(cX-w, cY+h-r, offset)
+            else:
+                if(w>h):
+                    pnt0 = adsk.core.Point3D.create(cX+w, cY+h-r, offset)
+                    pnt1 = adsk.core.Point3D.create(cX+w, cY-h+r, offset)
+                    pnt2 = adsk.core.Point3D.create(cX-w, cY-h+r, offset)
+                    pnt3 = adsk.core.Point3D.create(cX-w, cY+h-r, offset)
+                else:
+                    pnt0 = adsk.core.Point3D.create(cX+w-r, cY+h, offset)
+                    pnt1 = adsk.core.Point3D.create(cX+w-r, cY-h, offset)
+                    pnt2 = adsk.core.Point3D.create(cX-w+r, cY-h, offset)
+                    pnt3 = adsk.core.Point3D.create(cX-w+r, cY+h, offset)
+                    
+            cir0 = sketch.sketchCurves.sketchCircles.addByCenterRadius(pnt0, r)
+            cir1 = sketch.sketchCurves.sketchCircles.addByCenterRadius(pnt1, r)
+            cir2 = sketch.sketchCurves.sketchCircles.addByCenterRadius(pnt2, r)
+            cir3 = sketch.sketchCurves.sketchCircles.addByCenterRadius(pnt3, r)
+            
+            if(toTrim):
+                #sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w-r, cY+h-r, offset),0.02)
+                #rect.item(0).trim(adsk.core.Point3D.create(cX+w-r, cY+h-r, offset),False)
+                #sketch.sketchCurves.sketchCircles.item(0).trim(adsk.core.Point3D.create(cX+w-r, cY+h-r, offset),False)
+                
+                if(w>h):                
+                    rect.item(0).trim(pnt0)
+                    rect.item(0).trim(pnt3)
+                    rect.item(2).trim(pnt1)
+                    rect.item(2).trim(pnt2)
+                else:
+                    rect.item(1).trim(pnt0)
+                    rect.item(1).trim(pnt1)
+                    rect.item(3).trim(pnt3)
+                    rect.item(3).trim(pnt2)
+            
+                cir0.trim(adsk.core.Point3D.create(cX,cY,offset))
+                cir1.trim(adsk.core.Point3D.create(cX,cY,offset))
+                cir2.trim(adsk.core.Point3D.create(cX,cY,offset))
+                cir3.trim(adsk.core.Point3D.create(cX,cY,offset))
+                
     
     def left_right(self,_name,offset,root,sheetXBase,sheetXFront):
         #Component rename
@@ -361,37 +405,22 @@ class BOX:
         
         lines.addTwoPointRectangle(adsk.core.Point3D.create(self.d/2,self.h,offset),adsk.core.Point3D.create(-self.d/2,0,offset))
         
-        #axe = self.shiftBottom+self.wall/2   THIS is important
-        lines.addCenterPointRectangle(adsk.core.Point3D.create( 0,                              \
-                                                                self.shiftBottom+self.wall/2,   \
-                                                                offset),                        \
-                                      adsk.core.Point3D.create( sheetXBase, \
-                                                                self.shiftBottom+self.wall/2    +(self.wall-self.kerf)/2,      \
-                                                                offset))
         
-        #axe = self.h-self.shiftTop-self.wall/2   THIS is important
-        lines.addCenterPointRectangle(adsk.core.Point3D.create( 0,                              \
-                                                                self.h-self.shiftTop-self.wall/2,   \
-                                                                offset),                        \
-                                      adsk.core.Point3D.create( sheetXBase, \
-                                                                self.h-self.shiftTop-self.wall/2    +(self.wall-self.kerf)/2,      \
-                                                                offset))
+        #axe = self.shiftBottom+self.wall/2   THIS is important
+        self.rectForBox(sketch,offset, cX= 0,   cY= self.shiftBottom+self.wall/2,  w= sheetXBase, h= (self.wall-self.kerf)/2);
+        
+        
+        #axe = self.h-self.shiftTop-self.wall/2   THIS is important                                                                 
+        self.rectForBox(sketch,offset, cX= 0,   cY= self.h-self.shiftTop-self.wall/2,  w= sheetXBase, h= (self.wall-self.kerf)/2);
+              
+                                                  
+        #axe = self.d/2-self.shiftBack-self.wall/2   THIS is important
+        self.rectForBox(sketch,offset, cX= self.d/2-self.shiftBack-self.wall/2,   cY= self.h/2,  w= (self.wall-self.kerf)/2, h= sheetXFront);                                               
+            
                                                                 
         #axe = self.d/2-self.shiftBack-self.wall/2   THIS is important
-        lines.addCenterPointRectangle(adsk.core.Point3D.create( self.d/2-self.shiftBack-self.wall/2,                  \
-                                                                self.h/2,   \
-                                                                offset),                        \
-                                      adsk.core.Point3D.create( self.d/2-self.shiftBack-self.wall/2    +(self.wall-self.kerf)/2, \
-                                                                self.h/2+sheetXFront,\
-                                                                offset))
-                                                                
-        #axe = self.d/2-self.shiftBack-self.wall/2   THIS is important
-        lines.addCenterPointRectangle(adsk.core.Point3D.create( -self.d/2+self.shiftFront+self.wall/2,                  \
-                                                                self.h/2,   \
-                                                                offset),                        \
-                                      adsk.core.Point3D.create( -self.d/2+self.shiftFront+self.wall/2    -(self.wall-self.kerf)/2, \
-                                                                self.h/2+sheetXFront,\
-                                                                offset))
+        self.rectForBox(sketch,offset, cX= -self.d/2+self.shiftFront+self.wall/2,   cY= self.h/2,  w= (self.wall-self.kerf)/2, h= sheetXFront);                                                         
+                      
         
         extrudes = side.features.extrudeFeatures
         #prof = sketch.profiles[0]
@@ -401,6 +430,7 @@ class BOX:
         for prof in sketch.profiles:
             profs.add(prof)
             
+        #print(profs.count)
         extrudeInput = extrudes.createInput(profs[0], adsk.fusion.FeatureOperations.NewBodyFeatureOperation)
         distExtrude = adsk.core.ValueInput.createByReal(self.wall)   
         extrudeInput.setDistanceExtent(False, distExtrude)
@@ -413,11 +443,15 @@ class BOX:
         sideBody = side.bRepBodies.item(side.bRepBodies.count-1)
         sideBody.name = _name  
     
+        if(self.saveDXF):
+            saveToDXF(sketch, _name)    
+    
         return sideExtrude
         
     def front_back(self,_name,offset,root,sheetXFront,sheetZ):
         #Component rename
-        print(_name)
+        toTrim = True        
+        
         side = createNewComponent(root) 
         side.name = _name        
              
@@ -429,27 +463,68 @@ class BOX:
         
         lines = sketch.sketchCurves.sketchLines   
         
-        lines.addTwoPointRectangle(adsk.core.Point3D.create(-(self.w-self.wall)/2,self.h,offset),adsk.core.Point3D.create((self.w-self.wall)/2,0,offset))
+        # Main rectangle
+        mainRectangle = lines.addTwoPointRectangle(adsk.core.Point3D.create(-(self.w-self.wall)/2,self.h,offset),adsk.core.Point3D.create((self.w-self.wall)/2,0,offset))
         # sheetXFront for left
-        lines.addCenterPointRectangle(adsk.core.Point3D.create(-(self.w-self.wall)/2,self.h/2,offset),adsk.core.Point3D.create(-(self.w-self.wall)/2-self.wall,self.h/2+sheetXFront,offset))
-        # sheetXFront for Rigth
-        lines.addCenterPointRectangle(adsk.core.Point3D.create((self.w-self.wall)/2,self.h/2,offset),adsk.core.Point3D.create((self.w-self.wall)/2+self.wall,self.h/2+sheetXFront,offset))
+        point1 = adsk.core.Point3D.create(-(self.w-self.wall)/2,self.h/2,offset)
+        point2 = adsk.core.Point3D.create(-(self.w-self.wall)/2-self.wall,self.h/2+sheetXFront,offset)
+        point3 = adsk.core.Point3D.create(-(self.w-self.wall)/2+self.wall,self.h/2+sheetXFront,offset)
+        point4 = adsk.core.Point3D.create(-(self.w-self.wall)/2+self.wall,self.h/2-sheetXFront,offset)
+        rectangleToCut = lines.addCenterPointRectangle(point1,point2)
+        rectangleToCut.item(1).deleteMe()
+        rectangleToCut.item(0).trim(point4, False) #Top
+        rectangleToCut.item(2).trim(point3, False) #Bottom
         
+        leftLine = mainRectangle.item(3).trim(point1, False) #Left
+        
+        # sheetXFront for Right
+        point1 = adsk.core.Point3D.create((self.w-self.wall)/2,self.h/2,offset)
+        point2 = adsk.core.Point3D.create((self.w-self.wall)/2+self.wall,self.h/2+sheetXFront,offset)
+        point3 = adsk.core.Point3D.create((self.w-self.wall)/2-self.wall,self.h/2+sheetXFront,offset)
+        point4 = adsk.core.Point3D.create((self.w-self.wall)/2-self.wall,self.h/2-sheetXFront,offset)
+        rectangleToCut = lines.addCenterPointRectangle(point1,point2)
+        rectangleToCut.item(1).deleteMe()
+        rectangleToCut.item(0).trim(point3, False) #Top
+        rectangleToCut.item(2).trim(point4, False) #Bottom
+        
+        rightLine = mainRectangle.item(1).trim(point1, False) #Right
+                
+        #   hole for the top
         #axe = self.shiftBottom+self.wall/2   THIS is important
-        lines.addCenterPointRectangle(adsk.core.Point3D.create( 0,                              \
-                                                                self.shiftBottom+self.wall/2,   \
-                                                                offset),                        \
-                                      adsk.core.Point3D.create( sheetZ, \
-                                                                self.shiftBottom+self.wall/2    +(self.wall-self.kerf)/2,      \
-                                                                offset))
+        self.rectForBox(sketch,offset, cX= 0,   cY= self.shiftBottom+self.wall/2,  w= sheetZ, h= (self.wall-self.kerf)/2);
         
-        #axe = self.h-self.shiftTop-self.wall/2   THIS is important
-        lines.addCenterPointRectangle(adsk.core.Point3D.create( 0,                              \
-                                                                self.h-self.shiftTop-self.wall/2,   \
-                                                                offset),                        \
-                                      adsk.core.Point3D.create( sheetZ, \
-                                                                self.h-self.shiftTop-self.wall/2    +(self.wall-self.kerf)/2,      \
-                                                                offset))
+        
+        #axe = self.h-self.shiftTop-self.wall/2   THIS is important                                                              
+        self.rectForBox(sketch,offset, cX= 0,   cY= self.h-self.shiftTop-self.wall/2,  w= sheetZ, h= (self.wall-self.kerf)/2);
+        
+        mill = self.mill         
+        
+        if(mill > 0.0):
+            r=mill/2.0
+            
+            tmpCenter = adsk.core.Point3D.create(-(self.w-self.wall)/2,self.h/2+sheetXFront+r,offset)
+            tmp = sketch.sketchCurves.sketchCircles.addByCenterRadius(tmpCenter,r)
+            if(toTrim) : 
+                tmp.trim(adsk.core.Point3D.create(-(self.w-self.wall)/2-r,self.h/2+sheetXFront+r,offset))
+                leftLine.item(1).trim(tmpCenter)
+            
+            tmpCenter = adsk.core.Point3D.create(-(self.w-self.wall)/2,self.h/2-sheetXFront-r,offset)
+            tmp = sketch.sketchCurves.sketchCircles.addByCenterRadius(tmpCenter,r)
+            if(toTrim) : 
+                tmp.trim(adsk.core.Point3D.create(-(self.w-self.wall)/2-r,self.h/2-sheetXFront-r,offset))
+                leftLine.item(0).trim(tmpCenter)
+            
+            tmpCenter = adsk.core.Point3D.create((self.w-self.wall)/2,self.h/2+sheetXFront+r,offset)
+            tmp = sketch.sketchCurves.sketchCircles.addByCenterRadius(tmpCenter,r)
+            if(toTrim) : 
+                tmp.trim(adsk.core.Point3D.create((self.w-self.wall)/2+r,self.h/2+sheetXFront+r,offset))
+                rightLine.item(0).trim(tmpCenter)
+            
+            tmpCenter = adsk.core.Point3D.create((self.w-self.wall)/2,self.h/2-sheetXFront-r,offset)      
+            tmp = sketch.sketchCurves.sketchCircles.addByCenterRadius(tmpCenter,r)
+            if(toTrim) : 
+                tmp.trim(adsk.core.Point3D.create((self.w-self.wall)/2+r,self.h/2-sheetXFront-r,offset) )
+                rightLine.item(1).trim(tmpCenter)
                                                                 
         extrudes = side.features.extrudeFeatures
         #prof = sketch.profiles[0]
@@ -459,39 +534,8 @@ class BOX:
         for prof in sketch.profiles:
             profs.add(prof)
         print(profs.count)
-
-        # TODO MAKE IT IN GOOD WAY
-
-        profs.removeByIndex(5)
-        profs.removeByIndex(4)
-        #profs.removeByIndex()
-#        profs.removeByIndex(4)
-#        profs.removeByIndex(0)
-#        profs.removeByIndex(1)
-#        profs.removeByIndex(2)
-#        profs.removeByIndex(3)
-#        profs.removeByIndex(4)
-#        profs.removeByIndex(5)
-#        profs.removeByIndex(6)
    
-        
-        print(profs.count)
-#        count = profs.count
-#        for all in profs:
-#            areaProf = profs[count-1].areaProperties(adsk.fusion.CalculationAccuracy.MediumCalculationAccuracy).perimeter
-#            print('The area of profile is: ' + str(areaProf))
-#            areaProf = profs[count-1].areaProperties(adsk.fusion.CalculationAccuracy.MediumCalculationAccuracy).perimeter
-#            print('\n' + 'The area of profile is: ' + str(areaProf))
-        
-            
-#        areaProps = profs[0].areaProperties(adsk.fusion.CalculationAccuracy.MediumCalculationAccuracy)
-#        print(areaProps.perimeter)
-#        areaProps = profs[1].areaProperties(adsk.fusion.CalculationAccuracy.MediumCalculationAccuracy)
-#        print(areaProps.perimeter)
-#        areaProps = profs[2].areaProperties(adsk.fusion.CalculationAccuracy.MediumCalculationAccuracy)
-#        print(areaProps.perimeter)
-        
-        extrudeInput = extrudes.createInput(profs, adsk.fusion.FeatureOperations.NewBodyFeatureOperation)
+        extrudeInput = extrudes.createInput(profs[0], adsk.fusion.FeatureOperations.NewBodyFeatureOperation)
         distExtrude = adsk.core.ValueInput.createByReal(self.wall)   
         extrudeInput.setDistanceExtent(False, distExtrude)
         
@@ -503,10 +547,15 @@ class BOX:
         sideBody = side.bRepBodies.item(side.bRepBodies.count-1)
         sideBody.name = _name 
         
+        if(self.saveDXF):
+            saveToDXF(sketch, _name)
+        
         return sideExtrude
         
     def bot_top(self,_name,offset,root,conerFront,conerBack,sheetZ,sheetXBase):
         #Component rename
+        toTrim = True
+        
         side = createNewComponent(root) 
         side.name = _name  
         
@@ -518,27 +567,114 @@ class BOX:
         
         lines = sketch.sketchCurves.sketchLines
         
-        #   half of base from origin to front
-        rectangleToCut = lines.addTwoPointRectangle(adsk.core.Point3D.create(-(self.w-self.wall)/2,0,offset),adsk.core.Point3D.create((self.w-self.wall)/2,conerFront,offset))
-        #rectangleToCut = rectangleToCut.item(0).deleteMe()
         #   half of base from origin to back
-        rectangleToCut = lines.addTwoPointRectangle(adsk.core.Point3D.create(-(self.w-self.wall)/2,0,offset),adsk.core.Point3D.create((self.w-self.wall)/2,-conerBack,offset))
-        #rectangleToCut.item(0).deleteMe()
-        # sheetZ for front
-        rectangleToCut = lines.addCenterPointRectangle(adsk.core.Point3D.create(0,conerFront,offset),adsk.core.Point3D.create(sheetZ,conerFront-self.wall,offset))
-        #rectangleToCut.item(0).deleteMe()
+        baseBackPoint0 = adsk.core.Point3D.create(0,conerBack,offset) #MidPoint
+        baseBackPoint1 = adsk.core.Point3D.create(-(self.w-self.wall)/2,0,offset)
+        baseBackPoint2 = adsk.core.Point3D.create((self.w-self.wall)/2,conerBack,offset)
+        baseBackToCut = lines.addTwoPointRectangle(baseBackPoint1,baseBackPoint2)
+        baseBackToCut.item(0).deleteMe()
+        #   half of base from origin to front
+        baseFrontPoint0 = adsk.core.Point3D.create(0,-conerFront,offset) #MidPoint
+        baseFrontPoint1 = adsk.core.Point3D.create(-(self.w-self.wall)/2,0,offset)
+        baseFrontPoint2 = adsk.core.Point3D.create((self.w-self.wall)/2,-conerFront,offset)
+        baseFrontToCut = lines.addTwoPointRectangle(baseFrontPoint1,baseFrontPoint2)
+        baseFrontToCut.item(0).deleteMe()
         # sheetZ for back
-        rectangleToCut = lines.addCenterPointRectangle(adsk.core.Point3D.create(0,-conerBack,offset),adsk.core.Point3D.create(sheetZ,-conerBack-self.wall,offset))
-        #rectangleToCut.item(2).deleteMe()
+        point1 = adsk.core.Point3D.create(0,conerBack,offset)
+        point2 = adsk.core.Point3D.create(sheetZ,conerBack-self.wall,offset)  #ToRight
+        point3 = adsk.core.Point3D.create(-sheetZ,conerBack-self.wall,offset) #ToLeft
+        rectangleToCut = lines.addCenterPointRectangle(point1,point2)
+        rectangleToCut.item(0).deleteMe() #ToFront
+        rectangleToCut.item(1).trim(point3, False) #Correct ToLeft
+        rectangleToCut.item(3).trim(point2, False) #Correct ToRight
+        # sheetZ for front
+        point1 = adsk.core.Point3D.create(0,-conerBack,offset) #MidPoint
+        point2 = adsk.core.Point3D.create(sheetZ,-conerBack-self.wall,offset)
+        point3 = adsk.core.Point3D.create(sheetZ,-conerBack+self.wall,offset) #ToRight
+        point4 = adsk.core.Point3D.create(-sheetZ,-conerBack+self.wall,offset) #ToLeft
+        rectangleToCut = lines.addCenterPointRectangle(point1,point2)
+        rectangleToCut.item(2).deleteMe()
+        rectangleToCut.item(1).trim(point3, False) #Correct
+        rectangleToCut.item(3).trim(point4, False) #Correct
         # sheetXBase for left
-        rectangleToCut = lines.addCenterPointRectangle(adsk.core.Point3D.create(-(self.w-self.wall)/2,0,offset),adsk.core.Point3D.create((-(self.w-self.wall)/2)-self.wall,sheetXBase,offset))
-        #rectangleToCut.item(1).deleteMe()         
-        # sheetXBase for Rigth
-        rectangleToCut = lines.addCenterPointRectangle(adsk.core.Point3D.create((self.w-self.wall)/2,0,offset),adsk.core.Point3D.create(((self.w-self.wall)/2)+self.wall,sheetXBase,offset))
-        #rectangleToCut.item(1).deleteMe() 
+        point1 = adsk.core.Point3D.create(-(self.w-self.wall)/2,0,offset)
+        point2 = adsk.core.Point3D.create((-(self.w-self.wall)/2)-self.wall,sheetXBase,offset)
+        point3 = adsk.core.Point3D.create(0,-(self.w-self.wall)/2,offset)
+        rectangleToCut = lines.addCenterPointRectangle(point1,point2)
+        rectangleToCut.item(1).deleteMe()
+        rectangleToCut.item(0).trim(point1, False)
+        rectangleToCut.item(2).trim(point3, False)
+        # sheetXBase for Right
+        point1 = adsk.core.Point3D.create((self.w-self.wall)/2,0,offset)
+        point2 = adsk.core.Point3D.create(((self.w-self.wall)/2)+self.wall,sheetXBase,offset)
+        point3 = adsk.core.Point3D.create(0,(self.w-self.wall)/2,offset)
+        rectangleToCut = lines.addCenterPointRectangle(point1,point2)
+        rectangleToCut.item(1).deleteMe() 
+        rectangleToCut.item(0).trim(point1, False) #Correct
+        rectangleToCut.item(2).trim(point3, False)
         
-        #lines.addCenterPointRectangle(adsk.core.Point3D.create(0,0,offset),adsk.core.Point3D.create(2,2,offset))  
+        #  Trim rest of lines
+        rightBack = baseBackToCut.item(1).trim(baseBackPoint1) #Correct RIGHT 
+        leftBack = baseBackToCut.item(3).trim(baseBackPoint1) #Correct LEFT
+        
+        rightFront = baseFrontToCut.item(1).trim(baseFrontPoint1) #Correct RIGHT
+        leftFront = baseFrontToCut.item(3).trim(baseFrontPoint1) #Correct LEFT
+        
+        backLine = baseBackToCut.item(2).trim(baseBackPoint0) #Correct BACK
+        frontLine = baseFrontToCut.item(2).trim(baseFrontPoint0) #Correct FRONT 
+        
+        
+        mill = self.mill 
+        #sketch.sketchPoints.add(baseBackPoint0) #Draw a test dot
+        if(mill > 0.0):
+            r=mill/2.0
+            tmpCenter = adsk.core.Point3D.create(sheetZ+r,conerFront,offset)            
+            tmp = sketch.sketchCurves.sketchCircles.addByCenterRadius(tmpCenter,r)
+            if(toTrim) : 
+                tmp.trim(adsk.core.Point3D.create(sheetZ+r,conerFront+r,offset))
+                backLine.item(0).trim(tmpCenter)
+                  
+            tmpCenter = adsk.core.Point3D.create(-sheetZ-r,conerFront,offset) 
+            tmp = sketch.sketchCurves.sketchCircles.addByCenterRadius(tmpCenter,r)
+            if(toTrim) : 
+                tmp.trim(adsk.core.Point3D.create(-sheetZ-r,conerFront+r,offset))
+                backLine.item(1).trim(tmpCenter)
             
+            tmpCenter = adsk.core.Point3D.create(sheetZ+r,-conerBack,offset)
+            tmp = sketch.sketchCurves.sketchCircles.addByCenterRadius(tmpCenter,r)
+            if(toTrim) : 
+                tmp.trim(adsk.core.Point3D.create(sheetZ+r,-conerBack-r,offset))
+                frontLine.item(0).trim(tmpCenter)
+                
+            tmpCenter = adsk.core.Point3D.create(-sheetZ-r,-conerBack,offset)
+            tmp = sketch.sketchCurves.sketchCircles.addByCenterRadius(tmpCenter,r)
+            if(toTrim) : 
+                tmp.trim(adsk.core.Point3D.create(-sheetZ-r,-conerBack-r,offset))
+                frontLine.item(1).trim(tmpCenter)
+             
+            tmpCenter = adsk.core.Point3D.create((self.w-self.wall)/2,sheetXBase+r,offset)
+            tmp = sketch.sketchCurves.sketchCircles.addByCenterRadius(tmpCenter,r)
+            if(toTrim) : 
+                tmp.trim(adsk.core.Point3D.create((self.w-self.wall)/2+r,sheetXBase+r,offset))
+                rightBack.item(0).trim(tmpCenter)
+                
+            tmpCenter = adsk.core.Point3D.create((self.w-self.wall)/2,-sheetXBase-r,offset)
+            tmp = sketch.sketchCurves.sketchCircles.addByCenterRadius(tmpCenter,r)
+            if(toTrim) : 
+                tmp.trim(adsk.core.Point3D.create((self.w-self.wall)/2+r,-sheetXBase-r,offset))
+                rightFront.item(0).trim(tmpCenter)
+            
+            tmpCenter = adsk.core.Point3D.create(-(self.w-self.wall)/2,sheetXBase+r,offset)
+            tmp = sketch.sketchCurves.sketchCircles.addByCenterRadius(tmpCenter,r)
+            if(toTrim) : 
+                tmp.trim(adsk.core.Point3D.create(-(self.w-self.wall)/2-r,sheetXBase+r,offset))
+                leftBack.item(0).trim(tmpCenter)       
+            
+            tmpCenter = adsk.core.Point3D.create(-(self.w-self.wall)/2,-sheetXBase-r,offset)            
+            tmp = sketch.sketchCurves.sketchCircles.addByCenterRadius(tmpCenter,r)
+            if(toTrim) : 
+                tmp.trim(adsk.core.Point3D.create(-(self.w-self.wall)/2-r,-sheetXBase-r,offset))
+                leftFront.item(0).trim(tmpCenter)
         
         extrudes = side.features.extrudeFeatures
         #prof = sketch.profiles[0]
@@ -558,9 +694,41 @@ class BOX:
         
         #Body rename
         sideBody = side.bRepBodies.item(side.bRepBodies.count-1)
-        sideBody.name = _name         
+        sideBody.name = _name     
+        
+        if(self.saveDXF):                
+            saveToDXF(sketch, _name)
         
         return sideExtrude
+
+#Save to DXF
+def saveToDXF(sketch, name):
+    # Save to DXF
+        # For Windows
+        if(platform.system() == 'Windows'):
+            #Path to needed folder
+            path = os.path.expanduser("~\Desktop\\NiceBox360_DXF")
+        
+            #Check that folder
+            if not os.path.exists(path):
+                os.makedirs(path)
+                
+            # Save sketch to the folder
+            dxf_path = os.path.join(os.environ['USERPROFILE'], path, name + ".dxf")
+            sketch.saveAsDXF(dxf_path)
+        
+        # For Mac
+        if(platform.system() == 'Darwin'):
+            #Path to needed folder
+            path = os.path.expanduser("~/NiceBox360_DXF")
+        
+            #Check that folder
+            if not os.path.exists(path):
+                os.makedirs(path)
+                
+            # Save sketch to the folder
+            dxf_path = os.path.join("", path, name + ".dxf")
+            sketch.saveAsDXF(dxf_path)
 
 # Add data to User Parameters
 def userParams():
@@ -578,6 +746,8 @@ def userParams():
         design.userParameters.add('defaultD', adsk.core.ValueInput.createByReal(10), "cm", "Depth")
     if not paramExists(design, 'defaultKerf'):
         design.userParameters.add('defaultKerf', adsk.core.ValueInput.createByReal(0.03), "cm", "Kerf")
+    if not paramExists(design, 'defaultMill'):
+        design.userParameters.add('defaultMill', adsk.core.ValueInput.createByReal(0.03), "cm", "Mill")
     if not paramExists(design, 'defaultShiftTotal'):
         design.userParameters.add('defaultShiftTotal', adsk.core.ValueInput.createByReal(1), "cm", "Shift total")
     if not paramExists(design, 'defaultSheetAlpha'):
@@ -593,15 +763,34 @@ def paramExists(design, paramName):
         return True
     else:
         return False    
-    
+
+def closeAll():
+    ui = None
+    try:
+        app = adsk.core.Application.get()
+        ui = app.userInterface
+
+        # Build a list of the open documents.
+        docs = []
+        for doc in app.documents:
+            docs.append(doc)
+        
+        # Close all open documents, without saving them.
+        for doc in docs:
+            doc.close(False)
+    except:
+        if ui:
+            ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
+
 def run(context):
     try:
         
-        userParams()
-        
+        #userParams()
         if not design:
             ui.messageBox('It is not supported in current workspace, please change to MODEL workspace and try again.')
             return
+            
+        
         commandDefinitions = ui.commandDefinitions
         #check the command exists or not
         cmdDef = commandDefinitions.itemById('BOX')
