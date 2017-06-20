@@ -29,14 +29,22 @@ _This parameter is a physical thickness of material which you will use for produ
 
 ![Alt text](/resources/Images/Depth.jpg?raw=true "Depth")
 
-**Kerf Laser Cut** Kerf parameter is defined as the width of material that is removed by a cutting process.
+**Kerf Laser Cut** parameter is defined as the width of material that is removed by a cutting process.
 
 ![Alt text](/resources/Images/Kerf.jpg?raw=true "Shift")
+
+**Mill diameter** diameter of mill tool.
+
+![Alt text](/resources/Images/Mill.jpg?raw=true "Shift")
 
 **Shift** parameter is a value how deep top, bottom, back and front are placed relatively to edge of the box.
 _Good example here is 0mm._
 
 ![Alt text](/resources/Images/Shift.jpg?raw=true "Shift")
+
+**Tooth proportion** the ratio of the length of the tooth to the length of a side.
+
+![Alt text](/resources/Images/Tooth.jpg?raw=true "Shift")
 
 # Installing
 Click on **Clone or Download button**, then **Download ZIP**. Unzip that files in script folder on your computer:
