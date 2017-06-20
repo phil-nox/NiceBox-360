@@ -34,6 +34,7 @@ _This parameter is a physical thickness of material which you will use for produ
 ![Alt text](/resources/Images/Kerf.jpg?raw=true "Shift")
 
 **Mill diameter** diameter of mill tool.
+_Keep it at 0, if you don't use mill router for the manufactoring._
 
 ![Alt text](/resources/Images/Mill.jpg?raw=true "Shift")
 
