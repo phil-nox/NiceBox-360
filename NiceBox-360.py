@@ -823,7 +823,8 @@ def run(context):
         handlers.append(onCommandCreated)
         
         if context['IsApplicationStartup'] == False:
-            ui.messageBox('The "NiceBox-360" button has been added\nto the CREATE panel of the MODEL workspace.')
+            #ui.messageBox('The "NiceBox-360" button has been added\nto the CREATE panel of the MODEL workspace.')
+            pass
 
     except:
         if ui:
