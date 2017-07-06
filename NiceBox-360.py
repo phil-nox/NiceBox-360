@@ -1,9 +1,11 @@
-#Author-Philipp Nox
-#Description-
+#Author-Philipp Nox, CopyPasteStd
+#Description- Box generator for Fusion 360
 
 
-import adsk.core, adsk.fusion, traceback
+import adsk.core, adsk.fusion, adsk.cam, traceback
 import os, tempfile, platform
+
+commandId = 'adskNiceBox360AddIn'
 
 defaultBoxName = 'Box'
 defaultWall = 0.3
@@ -16,7 +18,6 @@ defaultSheetAlpha = 0.3
 defaultMill = 0.2
 defaultSaveDXF = False
 
-
 # global set of event handlers to keep them referenced for the duration of the command
 handlers = []
 app = adsk.core.Application.get()
@@ -27,13 +28,12 @@ newComp = None
 
 product = app.activeProduct
 design = adsk.fusion.Design.cast(product)
- 
 
 def createNewComponent(rootComp):
     allOccs = rootComp.occurrences
     newOcc = allOccs.addNewComponent(adsk.core.Matrix3D.create())
     return newOcc.component
-
+    
 class BoxCommandExecuteHandler(adsk.core.CommandEventHandler):
     def __init__(self):
         super().__init__()
@@ -77,7 +77,7 @@ class BoxCommandExecuteHandler(adsk.core.CommandEventHandler):
             if ui:
                 #ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
                 print('Failed:\n{}'.format(traceback.format_exc()))
-
+                
 class BoxCommandDestroyHandler(adsk.core.CommandEventHandler):
     def __init__(self):
         super().__init__()
@@ -85,11 +85,12 @@ class BoxCommandDestroyHandler(adsk.core.CommandEventHandler):
         try:
             # when the command is done, terminate the script
             # this will release all globals which will remove all event handlers
-            adsk.terminate()
+            #adsk.terminate()
+            pass
         except:
             if ui:
                 ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
-
+                
 class BoxCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):    
     def __init__(self):
         super().__init__()        
@@ -700,7 +701,7 @@ class BOX:
             saveToDXF(sketch, _name)
         
         return sideExtrude
-
+        
 #Save to DXF
 def saveToDXF(sketch, name):
     # Save to DXF
@@ -729,7 +730,7 @@ def saveToDXF(sketch, name):
             # Save sketch to the folder
             dxf_path = os.path.join("", path, name + ".dxf")
             sketch.saveAsDXF(dxf_path)
-
+            
 # Add data to User Parameters
 def userParams():
     
@@ -753,6 +754,7 @@ def userParams():
     if not paramExists(design, 'defaultSheetAlpha'):
         design.userParameters.add('defaultSheetAlpha', adsk.core.ValueInput.createByReal(0.3), "cm", "Sheet Alpha")
     
+
 # Check if some user parameter exist or not  
 def paramExists(design, paramName):
     # Try to get the parameter with the specified name.
@@ -762,53 +764,60 @@ def paramExists(design, paramName):
     if param:
         return True
     else:
-        return False    
-
-def closeAll():
+        return False
+                    
+def run(context):
     ui = None
     try:
-        app = adsk.core.Application.get()
-        ui = app.userInterface
-
-        # Build a list of the open documents.
-        docs = []
-        for doc in app.documents:
-            docs.append(doc)
+        global app, ui
         
-        # Close all open documents, without saving them.
-        for doc in docs:
-            doc.close(False)
+        app = adsk.core.Application.get()
+        ui  = app.userInterface
+        #ui.messageBox('Hello addin')
+        
+        # Create command defintion
+        cmdDef = ui.commandDefinitions.itemById(commandId)
+        if not cmdDef:
+            #cmdDef = ui.commandDefinitions.addButtonDefinition(commandId, commandName, commandDescription)        
+            cmdDef = ui.commandDefinitions.addButtonDefinition(commandId, 'NiceBox360', 'Creates a box by your parameters', 'Resources/NiceBox')        
+
+        
+        
+        # Create a command definition and add a button to the CREATE panel.
+        #cmdDef = ui.commandDefinitions.addButtonDefinition('adskNiceBox360AddIn', 'NiceBox360', 'Creates a box by your parameters', 'Resources/NiceBox')
+        #cmdDef = ui.commandDefinitions.addButtonDefinition(commandId, 'NiceBox360', 'Creates a box by your parameters', 'Resources/NiceBox')        
+
+        createPanel = ui.allToolbarPanels.itemById('SolidCreatePanel')
+        niceBoxBtn = createPanel.controls.addCommand(cmdDef)
+        
+        # Connect to the command created event.
+        onCommandCreated = BoxCommandCreatedHandler()
+        cmdDef.commandCreated.add(onCommandCreated)
+        handlers.append(onCommandCreated)
+        
+        if context['IsApplicationStartup'] == False:
+            ui.messageBox('The "NiceBox-360" button has been added\nto the CREATE panel of the MODEL workspace.')
+
     except:
         if ui:
             ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
 
-def run(context):
+def stop(context):
+    #ui = None
     try:
+#        app = adsk.core.Application.get()
+#        ui  = app.userInterface
+        ui.messageBox('Stop addin')
         
-        #userParams()
-        if not design:
-            ui.messageBox('It is not supported in current workspace, please change to MODEL workspace and try again.')
-            return
-            
+        createPanel = ui.allToolbarPanels.itemById('SolidCreatePanel')
+        niceBoxBtn = createPanel.controls.itemById(commandId)       
+        if niceBoxBtn:
+            niceBoxBtn.deleteMe()
         
-        commandDefinitions = ui.commandDefinitions
-        #check the command exists or not
-        cmdDef = commandDefinitions.itemById('BOX')
-        if not cmdDef:
-            cmdDef = commandDefinitions.addButtonDefinition('BOX',
-                    'Create Box',
-                    'Create a box.',
-                    './resources') # relative resource file path is specified
+        cmdDef = ui.commandDefinitions.itemById(commandId)
+        if cmdDef:
+            cmdDef.deleteMe()
 
-        onCommandCreated = BoxCommandCreatedHandler()
-        cmdDef.commandCreated.add(onCommandCreated)
-        # keep the handler referenced beyond this function
-        handlers.append(onCommandCreated)
-        inputs = adsk.core.NamedValues.create()
-        cmdDef.execute(inputs)
-   
-        # prevent this module from being terminate when the script returns, because we are waiting for event handlers to fire
-        adsk.autoTerminate(False)
     except:
         if ui:
             ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
