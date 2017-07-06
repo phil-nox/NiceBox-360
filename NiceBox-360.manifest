@@ -7,7 +7,7 @@
 		"":	"Box generator for Fusion 360"
 	},
 	"version":	"1.0",
-	"runOnStartup":	false,
+	"runOnStartup":	true,
 	"supportedOS":	"windows|mac",
 	"editEnabled":	true
 }
