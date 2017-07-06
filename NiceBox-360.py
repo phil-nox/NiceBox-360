@@ -40,15 +40,16 @@ def createNewComponent(rootComp):
     return newOcc.component
     
 class BoxCommandExecuteHandler(adsk.core.CommandEventHandler):
-    def __init__(self):
+    def __init__(self, box):
         super().__init__()
+        self._box = box
     def notify(self, args):
         try:
             unitsMgr = app.activeProduct.unitsManager
             command = args.firingEvent.sender
             inputs = command.commandInputs
 
-            box = BOX()
+            box = self._box
             
 #            if(inputs[10].value):       #input.id == 'buttonSave':
 #                toShow = str(inputs[10].id) + " " + str(inputs[10].value) + " Try to Save"
@@ -61,24 +62,26 @@ class BoxCommandExecuteHandler(adsk.core.CommandEventHandler):
 #                    return
 #                showMessage(dlg.filename)
         
+            box.boxName = inputs[0].value
+            box.wall = unitsMgr.evaluateExpression(inputs[1].expression, "cm")
+            box.h = unitsMgr.evaluateExpression(inputs[2].expression, "cm")
+            box.w = unitsMgr.evaluateExpression(inputs[3].expression, "cm")
+            box.d = unitsMgr.evaluateExpression(inputs[4].expression, "cm")
+            box.kerf = unitsMgr.evaluateExpression(inputs[5].expression, "cm")
+            box.mill = unitsMgr.evaluateExpression(inputs[6].expression, "cm")
+            box.shiftTotal = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
+            box.shiftTop = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
+            box.shiftBack = unitsMgr.evaluateExpression(inputs[7].expression, "cm")                    
+            box.shiftFront = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
+            box.shiftBottom = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
+            box.sheetAlpha = unitsMgr.evaluateExpression(inputs[8].expression, "cm")
 
-            if(inputs[9].value):          #input.id == 'button':   
-                box.boxName = inputs[0].value
-                box.wall = unitsMgr.evaluateExpression(inputs[1].expression, "cm")
-                box.h = unitsMgr.evaluateExpression(inputs[2].expression, "cm")
-                box.w = unitsMgr.evaluateExpression(inputs[3].expression, "cm")
-                box.d = unitsMgr.evaluateExpression(inputs[4].expression, "cm")
-                box.kerf = unitsMgr.evaluateExpression(inputs[5].expression, "cm")
-                box.mill = unitsMgr.evaluateExpression(inputs[6].expression, "cm")
-                box.shiftTotal = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
-                box.shiftTop = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
-                box.shiftBack = unitsMgr.evaluateExpression(inputs[7].expression, "cm")                    
-                box.shiftFront = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
-                box.shiftBottom = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
-                box.sheetAlpha = unitsMgr.evaluateExpression(inputs[8].expression, "cm")
-                
-                showMessage("BUILD-BOX")
+            if(inputs[9].value):          #input.id == 'button':                 
+                #showMessage("BUILD-BOX")
+                box.preview = True;
                 box.buildBox()
+            else :
+                box.preview = False;
  
               
             args.isValidResult = True
@@ -96,7 +99,8 @@ class BoxCommandDestroyHandler(adsk.core.CommandEventHandler):
             # when the command is done, terminate the script
             # this will release all globals which will remove all event handlers
             #adsk.terminate()
-            pass
+            if(not box.preview):
+                box.buildBox()
         except:
             if ui:
                 ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
@@ -108,9 +112,9 @@ class BoxCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
         try:
             cmd = args.command
             cmd.isRepeatable = False
-            onExecute = BoxCommandExecuteHandler()
+            onExecute = BoxCommandExecuteHandler(box)
             cmd.execute.add(onExecute)
-            onExecutePreview = BoxCommandExecuteHandler()
+            onExecutePreview = BoxCommandExecuteHandler(box)
             cmd.executePreview.add(onExecutePreview)
             onDestroy = BoxCommandDestroyHandler()
             cmd.destroy.add(onDestroy)
@@ -188,6 +192,7 @@ class BOX:
         self._shiftFront   = adsk.core.ValueInput.createByReal(defaultShiftTotal)
         self._shiftBottom   = adsk.core.ValueInput.createByReal(defaultShiftTotal)
         self._saveDXF = defaultSaveDXF
+        self._preview = False
 
 
     #properties
@@ -288,6 +293,13 @@ class BOX:
     @sheetAlpha.setter
     def sheetAlpha(self, value):
         self._sheetAlpha = value
+        
+    @property
+    def preview(self):
+        return self._preview
+    @preview.setter
+    def preview(self, value):
+        self._preview = value
 
     def buildBox(self):
         rootComp = design.rootComponent
@@ -783,10 +795,11 @@ def paramExists(design, paramName):
 def run(context):
     ui = None
     try:
-        global app, ui
+        global app, ui, box
         
         app = adsk.core.Application.get()
         ui  = app.userInterface
+        box = BOX()
         #ui.messageBox('Hello addin')
         
         # Create command defintion
@@ -821,7 +834,7 @@ def stop(context):
     try:
 #        app = adsk.core.Application.get()
 #        ui  = app.userInterface
-        ui.messageBox('Stop addin')
+        #ui.messageBox('Stop addin')      
         
         createPanel = ui.allToolbarPanels.itemById('SolidCreatePanel')
         niceBoxBtn = createPanel.controls.itemById(commandId)       
