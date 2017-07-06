@@ -29,6 +29,11 @@ newComp = None
 product = app.activeProduct
 design = adsk.fusion.Design.cast(product)
 
+def showMessage(string):
+    appMes = adsk.core.Application.get()
+    ui  = appMes.userInterface
+    ui.messageBox(str(string)) 
+
 def createNewComponent(rootComp):
     allOccs = rootComp.occurrences
     newOcc = allOccs.addNewComponent(adsk.core.Matrix3D.create())
@@ -44,33 +49,38 @@ class BoxCommandExecuteHandler(adsk.core.CommandEventHandler):
             inputs = command.commandInputs
 
             box = BOX()
-            for input in inputs:
-                if input.id == 'boxName':
-                    box.boxName = input.value
-                elif input.id == 'wall':
-                    box.wall = unitsMgr.evaluateExpression(input.expression, "cm")
-                elif input.id == 'height':
-                    box.h = unitsMgr.evaluateExpression(input.expression, "cm")
-                elif input.id == 'w':
-                    box.w = unitsMgr.evaluateExpression(input.expression, "cm")
-                elif input.id == 'd':
-                    box.d = unitsMgr.evaluateExpression(input.expression, "cm")
-                elif input.id == 'kerf':
-                    box.kerf = unitsMgr.evaluateExpression(input.expression, "cm")
-                elif input.id == 'mill':
-                    box.mill = unitsMgr.evaluateExpression(input.expression, "cm")
-                elif input.id == 'saveDXF':
-                    box.saveDXF = input.value
-                elif input.id == 'shiftTotal':
-                    box.shiftTotal = unitsMgr.evaluateExpression(input.expression, "cm")
-                    box.shiftTop = unitsMgr.evaluateExpression(input.expression, "cm")
-                    box.shiftBack = unitsMgr.evaluateExpression(input.expression, "cm")                    
-                    box.shiftFront = unitsMgr.evaluateExpression(input.expression, "cm")
-                    box.shiftBottom = unitsMgr.evaluateExpression(input.expression, "cm")
-                elif input.id == 'sheetAlpha':
-                    box.sheetAlpha = unitsMgr.evaluateExpression(input.expression, "cm")
+            
+#            if(inputs[10].value):       #input.id == 'buttonSave':
+#                toShow = str(inputs[10].id) + " " + str(inputs[10].value) + " Try to Save"
+#                showMessage(toShow)
+#                
+#                dlg = ui.createFileDialog()
+#                dlg.title = 'Open CSV File'
+#                dlg.filter = 'Comma Separated Values (*.csv);;All Files (*.*)'
+#                if dlg.showOpen() != adsk.core.DialogResults.DialogOK :
+#                    return
+#                showMessage(dlg.filename)
+        
 
-            box.buildBox();
+            if(inputs[9].value):          #input.id == 'button':   
+                box.boxName = inputs[0].value
+                box.wall = unitsMgr.evaluateExpression(inputs[1].expression, "cm")
+                box.h = unitsMgr.evaluateExpression(inputs[2].expression, "cm")
+                box.w = unitsMgr.evaluateExpression(inputs[3].expression, "cm")
+                box.d = unitsMgr.evaluateExpression(inputs[4].expression, "cm")
+                box.kerf = unitsMgr.evaluateExpression(inputs[5].expression, "cm")
+                box.mill = unitsMgr.evaluateExpression(inputs[6].expression, "cm")
+                box.shiftTotal = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
+                box.shiftTop = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
+                box.shiftBack = unitsMgr.evaluateExpression(inputs[7].expression, "cm")                    
+                box.shiftFront = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
+                box.shiftBottom = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
+                box.sheetAlpha = unitsMgr.evaluateExpression(inputs[8].expression, "cm")
+                
+                showMessage("BUILD-BOX")
+                box.buildBox()
+ 
+              
             args.isValidResult = True
 
         except:
@@ -143,6 +153,10 @@ class BoxCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
 
             initSheetAlpha = adsk.core.ValueInput.createByReal(defaultSheetAlpha)
             inputs.addValueInput('sheetAlpha', 'Tooth Proportions', '', initSheetAlpha)
+            
+            inputs.addBoolValueInput('button', 'Preview', True)
+            
+#            inputs.addBoolValueInput('buttonSave', 'Save', False)
             
             # Create readonly textbox input
             if(platform.system() == 'Windows'):
