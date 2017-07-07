@@ -38,7 +38,7 @@ def createNewComponent(rootComp):
     allOccs = rootComp.occurrences
     newOcc = allOccs.addNewComponent(adsk.core.Matrix3D.create())
     return newOcc.component
-    
+ 
 class BoxCommandExecuteHandler(adsk.core.CommandEventHandler):
     def __init__(self, box):
         super().__init__()
@@ -64,15 +64,55 @@ class BoxCommandExecuteHandler(adsk.core.CommandEventHandler):
             box.shiftFront = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
             box.shiftBottom = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
             box.sheetAlpha = unitsMgr.evaluateExpression(inputs[8].expression, "cm")
+            
+
+            if(not box.preview):
+                box.preview = True;
+                box.buildBox()
+ 
+
+        except:
+            if ui:
+                #ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
+                print('Failed:\n{}'.format(traceback.format_exc()))
+
+   
+class BoxCommandExecutePreviewHandler(adsk.core.CommandEventHandler):
+    def __init__(self, box):
+        super().__init__()
+        self._box = box
+    def notify(self, args):
+        try:
+            unitsMgr = app.activeProduct.unitsManager
+            command = args.firingEvent.sender
+            inputs = command.commandInputs
+
+            box = self._box
+                   
+            box.boxName = inputs[0].value
+            box.wall = unitsMgr.evaluateExpression(inputs[1].expression, "cm")
+            box.h = unitsMgr.evaluateExpression(inputs[2].expression, "cm")
+            box.w = unitsMgr.evaluateExpression(inputs[3].expression, "cm")
+            box.d = unitsMgr.evaluateExpression(inputs[4].expression, "cm")
+            box.kerf = unitsMgr.evaluateExpression(inputs[5].expression, "cm")
+            box.mill = unitsMgr.evaluateExpression(inputs[6].expression, "cm")
+            box.shiftTotal = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
+            box.shiftTop = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
+            box.shiftBack = unitsMgr.evaluateExpression(inputs[7].expression, "cm")                    
+            box.shiftFront = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
+            box.shiftBottom = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
+            box.sheetAlpha = unitsMgr.evaluateExpression(inputs[8].expression, "cm")
+            
 
             if(inputs[9].value):
                 box.preview = True;
                 box.buildBox()
+                args.isValidResult = True
             else :
                 box.preview = False;
- 
+                args.isValidResult = False
               
-            args.isValidResult = True
+            
 
         except:
             if ui:
@@ -87,8 +127,7 @@ class BoxCommandDestroyHandler(adsk.core.CommandEventHandler):
             # when the command is done, terminate the script
             # this will release all globals which will remove all event handlers
             #adsk.terminate()
-            if(not box.preview):
-                box.buildBox()
+            pass
         except:
             if ui:
                 ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
@@ -100,10 +139,13 @@ class BoxCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
         try:
             cmd = args.command
             cmd.isRepeatable = False
+            
             onExecute = BoxCommandExecuteHandler(box)
             cmd.execute.add(onExecute)
-            onExecutePreview = BoxCommandExecuteHandler(box)
+            
+            onExecutePreview = BoxCommandExecutePreviewHandler(box)
             cmd.executePreview.add(onExecutePreview)
+            
             onDestroy = BoxCommandDestroyHandler()
             cmd.destroy.add(onDestroy)
             # keep the handler referenced beyond this function
@@ -149,6 +191,8 @@ class BoxCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             
             if(platform.system() == 'Darwin'):
                 inputs.addTextBoxCommandInput('textBox' + '_textBox', 'DXF path', '~/NiceBox360_DXF', 2, True)
+                
+            
                         
         except:
             if ui:
