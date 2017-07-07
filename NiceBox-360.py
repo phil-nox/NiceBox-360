@@ -14,7 +14,7 @@ defaultW = 10
 defaultD = 10
 defaultKerf = 0.03
 defaultShiftTotal = 1
-defaultSheetAlpha = 0.3
+defaultSheetAlpha = 0.3 #Tooth Proportion parameter
 defaultMill = 0.2
 defaultSaveDXF = False
 
@@ -774,7 +774,7 @@ def run(context):
         # Create command defintion
         cmdDef = ui.commandDefinitions.itemById(commandId)
         if not cmdDef:   
-            cmdDef = ui.commandDefinitions.addButtonDefinition(commandId, 'NiceBox360', 'Creates a box by your parameters', 'Resources/NiceBox')             
+            cmdDef = ui.commandDefinitions.addButtonDefinition(commandId, 'NiceBox-360', 'Creates a box by your parameters', 'Resources/NiceBox')             
 
         createPanel = ui.allToolbarPanels.itemById('SolidCreatePanel')
         niceBoxBtn = createPanel.controls.addCommand(cmdDef)
