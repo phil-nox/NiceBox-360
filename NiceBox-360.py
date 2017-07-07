@@ -50,18 +50,7 @@ class BoxCommandExecuteHandler(adsk.core.CommandEventHandler):
             inputs = command.commandInputs
 
             box = self._box
-            
-#            if(inputs[10].value):       #input.id == 'buttonSave':
-#                toShow = str(inputs[10].id) + " " + str(inputs[10].value) + " Try to Save"
-#                showMessage(toShow)
-#                
-#                dlg = ui.createFileDialog()
-#                dlg.title = 'Open CSV File'
-#                dlg.filter = 'Comma Separated Values (*.csv);;All Files (*.*)'
-#                if dlg.showOpen() != adsk.core.DialogResults.DialogOK :
-#                    return
-#                showMessage(dlg.filename)
-        
+                   
             box.boxName = inputs[0].value
             box.wall = unitsMgr.evaluateExpression(inputs[1].expression, "cm")
             box.h = unitsMgr.evaluateExpression(inputs[2].expression, "cm")
@@ -76,8 +65,7 @@ class BoxCommandExecuteHandler(adsk.core.CommandEventHandler):
             box.shiftBottom = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
             box.sheetAlpha = unitsMgr.evaluateExpression(inputs[8].expression, "cm")
 
-            if(inputs[9].value):          #input.id == 'button':                 
-                #showMessage("BUILD-BOX")
+            if(inputs[9].value):
                 box.preview = True;
                 box.buildBox()
             else :
@@ -126,16 +114,11 @@ class BoxCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             #define the inputs
             inputs = cmd.commandInputs
             inputs.addStringValueInput('boxName', 'Box Name', defaultBoxName)
-            
-            #print(design.userParameters.itemByName('defaultWall'))
-            #print('test') 
-            
+                         
             initWall = adsk.core.ValueInput.createByReal(defaultWall)
-            #initWall = adsk.core.ValueInput.createByReal(design.userParameters.itemByName('defaultWall').value)
             inputs.addValueInput('wall', 'Wall','cm',initWall)
             
             initH = adsk.core.ValueInput.createByReal(defaultH)      
-            #initH = adsk.core.ValueInput.createByReal(design.userParameters.itemByName(defaultH)) 
             inputs.addValueInput('height', 'Height', 'cm', initH)
 
             initW = adsk.core.ValueInput.createByReal(defaultW)
@@ -159,18 +142,14 @@ class BoxCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             inputs.addValueInput('sheetAlpha', 'Tooth Proportions', '', initSheetAlpha)
             
             inputs.addBoolValueInput('button', 'Preview', True)
-            
-#            inputs.addBoolValueInput('buttonSave', 'Save', False)
-            
+                        
             # Create readonly textbox input
             if(platform.system() == 'Windows'):
                  inputs.addTextBoxCommandInput('textBox' + '_textBox', 'DXF path', '~\Desktop\\NiceBox360_DXF', 2, True)
             
             if(platform.system() == 'Darwin'):
                 inputs.addTextBoxCommandInput('textBox' + '_textBox', 'DXF path', '~/NiceBox360_DXF', 2, True)
-            
-            #inputs.addBoolValueInput('saveDXF', 'Save DXF', True, '', False)
-            
+                        
         except:
             if ui:
                 ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
@@ -180,7 +159,6 @@ class BOX:
         self._boxName = defaultBoxName
         self._wall = defaultWall
         self._h = defaultH
-        #self._h = design.rootComponent.modelParameters.itemByName('defaultH')
         self._w = defaultW
         self._d = adsk.core.ValueInput.createByReal(defaultD)
         self._kerf = defaultKerf
@@ -358,7 +336,6 @@ class BOX:
         rect = sketch.sketchCurves.sketchLines.addCenterPointRectangle(adsk.core.Point3D.create(cX,cY,offset),adsk.core.Point3D.create(cX+w,cY+h,offset))  
         
         #make mill's holes
-        #mill = self.mill
         yMill = True 
         toTrim = True
         
@@ -396,10 +373,7 @@ class BOX:
             cir3 = sketch.sketchCurves.sketchCircles.addByCenterRadius(pnt3, r)
             
             if(toTrim):
-                #sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w-r, cY+h-r, offset),0.02)
-                #rect.item(0).trim(adsk.core.Point3D.create(cX+w-r, cY+h-r, offset),False)
-                #sketch.sketchCurves.sketchCircles.item(0).trim(adsk.core.Point3D.create(cX+w-r, cY+h-r, offset),False)
-                
+
                 if(w>h):                
                     rect.item(0).trim(pnt0)
                     rect.item(0).trim(pnt3)
@@ -418,6 +392,7 @@ class BOX:
                 
     
     def left_right(self,_name,offset,root,sheetXBase,sheetXFront):
+        
         #Component rename
         side = createNewComponent(root) 
         side.name = _name
@@ -432,23 +407,18 @@ class BOX:
         
         lines.addTwoPointRectangle(adsk.core.Point3D.create(self.d/2,self.h,offset),adsk.core.Point3D.create(-self.d/2,0,offset))
         
-        
         #axe = self.shiftBottom+self.wall/2   THIS is important
         self.rectForBox(sketch,offset, cX= 0,   cY= self.shiftBottom+self.wall/2,  w= sheetXBase, h= (self.wall-self.kerf)/2);
-        
         
         #axe = self.h-self.shiftTop-self.wall/2   THIS is important                                                                 
         self.rectForBox(sketch,offset, cX= 0,   cY= self.h-self.shiftTop-self.wall/2,  w= sheetXBase, h= (self.wall-self.kerf)/2);
               
-                                                  
         #axe = self.d/2-self.shiftBack-self.wall/2   THIS is important
         self.rectForBox(sketch,offset, cX= self.d/2-self.shiftBack-self.wall/2,   cY= self.h/2,  w= (self.wall-self.kerf)/2, h= sheetXFront);                                               
             
-                                                                
         #axe = self.d/2-self.shiftBack-self.wall/2   THIS is important
         self.rectForBox(sketch,offset, cX= -self.d/2+self.shiftFront+self.wall/2,   cY= self.h/2,  w= (self.wall-self.kerf)/2, h= sheetXFront);                                                         
                       
-        
         extrudes = side.features.extrudeFeatures
         #prof = sketch.profiles[0]
         
@@ -492,6 +462,7 @@ class BOX:
         
         # Main rectangle
         mainRectangle = lines.addTwoPointRectangle(adsk.core.Point3D.create(-(self.w-self.wall)/2,self.h,offset),adsk.core.Point3D.create((self.w-self.wall)/2,0,offset))
+        
         # sheetXFront for left
         point1 = adsk.core.Point3D.create(-(self.w-self.wall)/2,self.h/2,offset)
         point2 = adsk.core.Point3D.create(-(self.w-self.wall)/2-self.wall,self.h/2+sheetXFront,offset)
@@ -519,7 +490,6 @@ class BOX:
         #   hole for the top
         #axe = self.shiftBottom+self.wall/2   THIS is important
         self.rectForBox(sketch,offset, cX= 0,   cY= self.shiftBottom+self.wall/2,  w= sheetZ, h= (self.wall-self.kerf)/2);
-        
         
         #axe = self.h-self.shiftTop-self.wall/2   THIS is important                                                              
         self.rectForBox(sketch,offset, cX= 0,   cY= self.h-self.shiftTop-self.wall/2,  w= sheetZ, h= (self.wall-self.kerf)/2);
@@ -800,19 +770,11 @@ def run(context):
         app = adsk.core.Application.get()
         ui  = app.userInterface
         box = BOX()
-        #ui.messageBox('Hello addin')
         
         # Create command defintion
         cmdDef = ui.commandDefinitions.itemById(commandId)
-        if not cmdDef:
-            #cmdDef = ui.commandDefinitions.addButtonDefinition(commandId, commandName, commandDescription)        
-            cmdDef = ui.commandDefinitions.addButtonDefinition(commandId, 'NiceBox360', 'Creates a box by your parameters', 'Resources/NiceBox')        
-
-        
-        
-        # Create a command definition and add a button to the CREATE panel.
-        #cmdDef = ui.commandDefinitions.addButtonDefinition('adskNiceBox360AddIn', 'NiceBox360', 'Creates a box by your parameters', 'Resources/NiceBox')
-        #cmdDef = ui.commandDefinitions.addButtonDefinition(commandId, 'NiceBox360', 'Creates a box by your parameters', 'Resources/NiceBox')        
+        if not cmdDef:   
+            cmdDef = ui.commandDefinitions.addButtonDefinition(commandId, 'NiceBox360', 'Creates a box by your parameters', 'Resources/NiceBox')             
 
         createPanel = ui.allToolbarPanels.itemById('SolidCreatePanel')
         niceBoxBtn = createPanel.controls.addCommand(cmdDef)
@@ -823,7 +785,7 @@ def run(context):
         handlers.append(onCommandCreated)
         
         if context['IsApplicationStartup'] == False:
-            #ui.messageBox('The "NiceBox-360" button has been added\nto the CREATE panel of the MODEL workspace.')
+            ui.messageBox('The "NiceBox-360" button has been added\nto the CREATE panel of the MODEL workspace.')
             pass
 
     except:
@@ -833,10 +795,7 @@ def run(context):
 def stop(context):
     #ui = None
     try:
-#        app = adsk.core.Application.get()
-#        ui  = app.userInterface
-        #ui.messageBox('Stop addin')      
-        
+           
         createPanel = ui.allToolbarPanels.itemById('SolidCreatePanel')
         niceBoxBtn = createPanel.controls.itemById(commandId)       
         if niceBoxBtn:
