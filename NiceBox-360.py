@@ -16,7 +16,7 @@ defaultKerf = 0.03
 defaultShiftTotal = 1
 defaultSheetAlpha = 0.3 #Tooth Proportion parameter
 defaultMill = 0.2
-defaultSaveDXF = False
+defaultSaveDXF = True
 
 # global set of event handlers to keep them referenced for the duration of the command
 handlers = []
