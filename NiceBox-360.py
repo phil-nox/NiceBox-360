@@ -1,9 +1,11 @@
-#Author-Philipp Nox
-#Description-
+#Author-Philipp Nox, CopyPasteStd
+#Description- Box generator for Fusion 360
 
 
-import adsk.core, adsk.fusion, traceback
+import adsk.core, adsk.fusion, adsk.cam, traceback
 import os, tempfile, platform
+
+commandId = 'adskNiceBox360AddIn'
 
 defaultBoxName = 'Box'
 defaultWall = 0.3
@@ -12,10 +14,9 @@ defaultW = 10
 defaultD = 10
 defaultKerf = 0.03
 defaultShiftTotal = 1
-defaultSheetAlpha = 0.3
+defaultSheetAlpha = 0.3 #Tooth Proportion parameter
 defaultMill = 0.2
-defaultSaveDXF = False
-
+defaultSaveDXF = True
 
 # global set of event handlers to keep them referenced for the duration of the command
 handlers = []
@@ -25,59 +26,98 @@ if app:
 
 newComp = None
 
-product = app.activeProduct
-design = adsk.fusion.Design.cast(product)
- 
+
+
+def showMessage(string):
+    appMes = adsk.core.Application.get()
+    ui  = appMes.userInterface
+    ui.messageBox(str(string)) 
 
 def createNewComponent(rootComp):
     allOccs = rootComp.occurrences
     newOcc = allOccs.addNewComponent(adsk.core.Matrix3D.create())
     return newOcc.component
-
+ 
 class BoxCommandExecuteHandler(adsk.core.CommandEventHandler):
-    def __init__(self):
+    def __init__(self, box):
         super().__init__()
+        self._box = box
     def notify(self, args):
         try:
             unitsMgr = app.activeProduct.unitsManager
             command = args.firingEvent.sender
             inputs = command.commandInputs
 
-            box = BOX()
-            for input in inputs:
-                if input.id == 'boxName':
-                    box.boxName = input.value
-                elif input.id == 'wall':
-                    box.wall = unitsMgr.evaluateExpression(input.expression, "cm")
-                elif input.id == 'height':
-                    box.h = unitsMgr.evaluateExpression(input.expression, "cm")
-                elif input.id == 'w':
-                    box.w = unitsMgr.evaluateExpression(input.expression, "cm")
-                elif input.id == 'd':
-                    box.d = unitsMgr.evaluateExpression(input.expression, "cm")
-                elif input.id == 'kerf':
-                    box.kerf = unitsMgr.evaluateExpression(input.expression, "cm")
-                elif input.id == 'mill':
-                    box.mill = unitsMgr.evaluateExpression(input.expression, "cm")
-                elif input.id == 'saveDXF':
-                    box.saveDXF = input.value
-                elif input.id == 'shiftTotal':
-                    box.shiftTotal = unitsMgr.evaluateExpression(input.expression, "cm")
-                    box.shiftTop = unitsMgr.evaluateExpression(input.expression, "cm")
-                    box.shiftBack = unitsMgr.evaluateExpression(input.expression, "cm")                    
-                    box.shiftFront = unitsMgr.evaluateExpression(input.expression, "cm")
-                    box.shiftBottom = unitsMgr.evaluateExpression(input.expression, "cm")
-                elif input.id == 'sheetAlpha':
-                    box.sheetAlpha = unitsMgr.evaluateExpression(input.expression, "cm")
+            box = self._box
+                   
+            box.boxName = inputs[0].value
+            box.wall = unitsMgr.evaluateExpression(inputs[1].expression, "cm")
+            box.h = unitsMgr.evaluateExpression(inputs[2].expression, "cm")
+            box.w = unitsMgr.evaluateExpression(inputs[3].expression, "cm")
+            box.d = unitsMgr.evaluateExpression(inputs[4].expression, "cm")
+            box.kerf = unitsMgr.evaluateExpression(inputs[5].expression, "cm")
+            box.mill = unitsMgr.evaluateExpression(inputs[6].expression, "cm")
+            box.shiftTotal = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
+            box.shiftTop = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
+            box.shiftBack = unitsMgr.evaluateExpression(inputs[7].expression, "cm")                    
+            box.shiftFront = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
+            box.shiftBottom = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
+            box.sheetAlpha = unitsMgr.evaluateExpression(inputs[8].expression, "cm")
+            
 
-            box.buildBox();
-            args.isValidResult = True
+            if(not box.preview):
+                box.preview = True;
+                box.buildBox()
+ 
 
         except:
             if ui:
                 #ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
                 print('Failed:\n{}'.format(traceback.format_exc()))
 
+   
+class BoxCommandExecutePreviewHandler(adsk.core.CommandEventHandler):
+    def __init__(self, box):
+        super().__init__()
+        self._box = box
+    def notify(self, args):
+        try:
+            unitsMgr = app.activeProduct.unitsManager
+            command = args.firingEvent.sender
+            inputs = command.commandInputs
+
+            box = self._box
+                   
+            box.boxName = inputs[0].value
+            box.wall = unitsMgr.evaluateExpression(inputs[1].expression, "cm")
+            box.h = unitsMgr.evaluateExpression(inputs[2].expression, "cm")
+            box.w = unitsMgr.evaluateExpression(inputs[3].expression, "cm")
+            box.d = unitsMgr.evaluateExpression(inputs[4].expression, "cm")
+            box.kerf = unitsMgr.evaluateExpression(inputs[5].expression, "cm")
+            box.mill = unitsMgr.evaluateExpression(inputs[6].expression, "cm")
+            box.shiftTotal = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
+            box.shiftTop = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
+            box.shiftBack = unitsMgr.evaluateExpression(inputs[7].expression, "cm")                    
+            box.shiftFront = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
+            box.shiftBottom = unitsMgr.evaluateExpression(inputs[7].expression, "cm")
+            box.sheetAlpha = unitsMgr.evaluateExpression(inputs[8].expression, "cm")
+            
+
+            if(inputs[9].value):
+                box.preview = True;
+                box.buildBox()
+                args.isValidResult = True
+            else :
+                box.preview = False;
+                args.isValidResult = False
+              
+            
+
+        except:
+            if ui:
+                #ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
+                print('Failed:\n{}'.format(traceback.format_exc()))
+                
 class BoxCommandDestroyHandler(adsk.core.CommandEventHandler):
     def __init__(self):
         super().__init__()
@@ -85,11 +125,12 @@ class BoxCommandDestroyHandler(adsk.core.CommandEventHandler):
         try:
             # when the command is done, terminate the script
             # this will release all globals which will remove all event handlers
-            adsk.terminate()
+            #adsk.terminate()
+            pass
         except:
             if ui:
                 ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
-
+                
 class BoxCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):    
     def __init__(self):
         super().__init__()        
@@ -97,10 +138,13 @@ class BoxCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
         try:
             cmd = args.command
             cmd.isRepeatable = False
-            onExecute = BoxCommandExecuteHandler()
+            
+            onExecute = BoxCommandExecuteHandler(box)
             cmd.execute.add(onExecute)
-            onExecutePreview = BoxCommandExecuteHandler()
+            
+            onExecutePreview = BoxCommandExecutePreviewHandler(box)
             cmd.executePreview.add(onExecutePreview)
+            
             onDestroy = BoxCommandDestroyHandler()
             cmd.destroy.add(onDestroy)
             # keep the handler referenced beyond this function
@@ -111,16 +155,11 @@ class BoxCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             #define the inputs
             inputs = cmd.commandInputs
             inputs.addStringValueInput('boxName', 'Box Name', defaultBoxName)
-            
-            #print(design.userParameters.itemByName('defaultWall'))
-            #print('test') 
-            
+                         
             initWall = adsk.core.ValueInput.createByReal(defaultWall)
-            #initWall = adsk.core.ValueInput.createByReal(design.userParameters.itemByName('defaultWall').value)
             inputs.addValueInput('wall', 'Wall','cm',initWall)
             
             initH = adsk.core.ValueInput.createByReal(defaultH)      
-            #initH = adsk.core.ValueInput.createByReal(design.userParameters.itemByName(defaultH)) 
             inputs.addValueInput('height', 'Height', 'cm', initH)
 
             initW = adsk.core.ValueInput.createByReal(defaultW)
@@ -143,15 +182,17 @@ class BoxCommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             initSheetAlpha = adsk.core.ValueInput.createByReal(defaultSheetAlpha)
             inputs.addValueInput('sheetAlpha', 'Tooth Proportions', '', initSheetAlpha)
             
+            inputs.addBoolValueInput('button', 'Preview', True)
+                        
             # Create readonly textbox input
             if(platform.system() == 'Windows'):
                  inputs.addTextBoxCommandInput('textBox' + '_textBox', 'DXF path', '~\Desktop\\NiceBox360_DXF', 2, True)
             
             if(platform.system() == 'Darwin'):
                 inputs.addTextBoxCommandInput('textBox' + '_textBox', 'DXF path', '~/NiceBox360_DXF', 2, True)
+                
             
-            #inputs.addBoolValueInput('saveDXF', 'Save DXF', True, '', False)
-            
+                        
         except:
             if ui:
                 ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
@@ -161,7 +202,6 @@ class BOX:
         self._boxName = defaultBoxName
         self._wall = defaultWall
         self._h = defaultH
-        #self._h = design.rootComponent.modelParameters.itemByName('defaultH')
         self._w = defaultW
         self._d = adsk.core.ValueInput.createByReal(defaultD)
         self._kerf = defaultKerf
@@ -173,6 +213,7 @@ class BOX:
         self._shiftFront   = adsk.core.ValueInput.createByReal(defaultShiftTotal)
         self._shiftBottom   = adsk.core.ValueInput.createByReal(defaultShiftTotal)
         self._saveDXF = defaultSaveDXF
+        self._preview = False
 
 
     #properties
@@ -273,8 +314,17 @@ class BOX:
     @sheetAlpha.setter
     def sheetAlpha(self, value):
         self._sheetAlpha = value
+        
+    @property
+    def preview(self):
+        return self._preview
+    @preview.setter
+    def preview(self, value):
+        self._preview = value
 
     def buildBox(self):
+        product = app.activeProduct
+        design = adsk.fusion.Design.cast(product)
         rootComp = design.rootComponent
         root = createNewComponent(rootComp)
         root.name = defaultBoxName 
@@ -331,7 +381,6 @@ class BOX:
         rect = sketch.sketchCurves.sketchLines.addCenterPointRectangle(adsk.core.Point3D.create(cX,cY,offset),adsk.core.Point3D.create(cX+w,cY+h,offset))  
         
         #make mill's holes
-        #mill = self.mill
         yMill = True 
         toTrim = True
         
@@ -369,10 +418,7 @@ class BOX:
             cir3 = sketch.sketchCurves.sketchCircles.addByCenterRadius(pnt3, r)
             
             if(toTrim):
-                #sketch.sketchCurves.sketchCircles.addByCenterRadius(adsk.core.Point3D.create(cX+w-r, cY+h-r, offset),0.02)
-                #rect.item(0).trim(adsk.core.Point3D.create(cX+w-r, cY+h-r, offset),False)
-                #sketch.sketchCurves.sketchCircles.item(0).trim(adsk.core.Point3D.create(cX+w-r, cY+h-r, offset),False)
-                
+
                 if(w>h):                
                     rect.item(0).trim(pnt0)
                     rect.item(0).trim(pnt3)
@@ -391,6 +437,7 @@ class BOX:
                 
     
     def left_right(self,_name,offset,root,sheetXBase,sheetXFront):
+        
         #Component rename
         side = createNewComponent(root) 
         side.name = _name
@@ -405,23 +452,18 @@ class BOX:
         
         lines.addTwoPointRectangle(adsk.core.Point3D.create(self.d/2,self.h,offset),adsk.core.Point3D.create(-self.d/2,0,offset))
         
-        
         #axe = self.shiftBottom+self.wall/2   THIS is important
         self.rectForBox(sketch,offset, cX= 0,   cY= self.shiftBottom+self.wall/2,  w= sheetXBase, h= (self.wall-self.kerf)/2);
-        
         
         #axe = self.h-self.shiftTop-self.wall/2   THIS is important                                                                 
         self.rectForBox(sketch,offset, cX= 0,   cY= self.h-self.shiftTop-self.wall/2,  w= sheetXBase, h= (self.wall-self.kerf)/2);
               
-                                                  
         #axe = self.d/2-self.shiftBack-self.wall/2   THIS is important
         self.rectForBox(sketch,offset, cX= self.d/2-self.shiftBack-self.wall/2,   cY= self.h/2,  w= (self.wall-self.kerf)/2, h= sheetXFront);                                               
             
-                                                                
         #axe = self.d/2-self.shiftBack-self.wall/2   THIS is important
         self.rectForBox(sketch,offset, cX= -self.d/2+self.shiftFront+self.wall/2,   cY= self.h/2,  w= (self.wall-self.kerf)/2, h= sheetXFront);                                                         
                       
-        
         extrudes = side.features.extrudeFeatures
         #prof = sketch.profiles[0]
         
@@ -465,6 +507,7 @@ class BOX:
         
         # Main rectangle
         mainRectangle = lines.addTwoPointRectangle(adsk.core.Point3D.create(-(self.w-self.wall)/2,self.h,offset),adsk.core.Point3D.create((self.w-self.wall)/2,0,offset))
+        
         # sheetXFront for left
         point1 = adsk.core.Point3D.create(-(self.w-self.wall)/2,self.h/2,offset)
         point2 = adsk.core.Point3D.create(-(self.w-self.wall)/2-self.wall,self.h/2+sheetXFront,offset)
@@ -492,7 +535,6 @@ class BOX:
         #   hole for the top
         #axe = self.shiftBottom+self.wall/2   THIS is important
         self.rectForBox(sketch,offset, cX= 0,   cY= self.shiftBottom+self.wall/2,  w= sheetZ, h= (self.wall-self.kerf)/2);
-        
         
         #axe = self.h-self.shiftTop-self.wall/2   THIS is important                                                              
         self.rectForBox(sketch,offset, cX= 0,   cY= self.h-self.shiftTop-self.wall/2,  w= sheetZ, h= (self.wall-self.kerf)/2);
@@ -700,7 +742,7 @@ class BOX:
             saveToDXF(sketch, _name)
         
         return sideExtrude
-
+        
 #Save to DXF
 def saveToDXF(sketch, name):
     # Save to DXF
@@ -729,86 +771,51 @@ def saveToDXF(sketch, name):
             # Save sketch to the folder
             dxf_path = os.path.join("", path, name + ".dxf")
             sketch.saveAsDXF(dxf_path)
+            
 
-# Add data to User Parameters
-def userParams():
-    
-    # ToDo -   
-    if not paramExists(design, 'defaultBoxName'):
-        design.userParameters.add('defaultBoxName', adsk.core.ValueInput.createByString(defaultBoxName), "", "Box name")
-    if not paramExists(design, 'defaultWall'):
-        design.userParameters.add('defaultWall', adsk.core.ValueInput.createByReal(0.03), "cm", "Wall thickness")
-    if not paramExists(design, 'defaultH'):
-        design.userParameters.add('defaultH', adsk.core.ValueInput.createByReal(30), "cm", "Height")
-    if not paramExists(design, 'defaultW'):
-        design.userParameters.add('defaultW', adsk.core.ValueInput.createByReal(10), "cm", "Width")
-    if not paramExists(design, 'defaultD'):
-        design.userParameters.add('defaultD', adsk.core.ValueInput.createByReal(10), "cm", "Depth")
-    if not paramExists(design, 'defaultKerf'):
-        design.userParameters.add('defaultKerf', adsk.core.ValueInput.createByReal(0.03), "cm", "Kerf")
-    if not paramExists(design, 'defaultMill'):
-        design.userParameters.add('defaultMill', adsk.core.ValueInput.createByReal(0.03), "cm", "Mill")
-    if not paramExists(design, 'defaultShiftTotal'):
-        design.userParameters.add('defaultShiftTotal', adsk.core.ValueInput.createByReal(1), "cm", "Shift total")
-    if not paramExists(design, 'defaultSheetAlpha'):
-        design.userParameters.add('defaultSheetAlpha', adsk.core.ValueInput.createByReal(0.3), "cm", "Sheet Alpha")
-    
-# Check if some user parameter exist or not  
-def paramExists(design, paramName):
-    # Try to get the parameter with the specified name.
-    param = design.userParameters.itemByName(paramName)            
-    
-    # Check to see if a parameter was returned.
-    if param:
-        return True
-    else:
-        return False    
-
-def closeAll():
+                    
+def run(context):
     ui = None
     try:
-        app = adsk.core.Application.get()
-        ui = app.userInterface
-
-        # Build a list of the open documents.
-        docs = []
-        for doc in app.documents:
-            docs.append(doc)
+        global app, ui, box
         
-        # Close all open documents, without saving them.
-        for doc in docs:
-            doc.close(False)
+        app = adsk.core.Application.get()
+        ui  = app.userInterface
+        box = BOX()
+        
+        # Create command defintion
+        cmdDef = ui.commandDefinitions.itemById(commandId)
+        if not cmdDef:   
+            cmdDef = ui.commandDefinitions.addButtonDefinition(commandId, 'NiceBox-360', 'Creates a box by your parameters', 'Resources/NiceBox')             
+        createPanel = ui.allToolbarPanels.itemById('SolidCreatePanel')
+        niceBoxBtn = createPanel.controls.addCommand(cmdDef)
+        
+        # Connect to the command created event.
+        onCommandCreated = BoxCommandCreatedHandler()
+        cmdDef.commandCreated.add(onCommandCreated)
+        handlers.append(onCommandCreated)
+        
+        if context['IsApplicationStartup'] == False:
+            ui.messageBox('The "NiceBox-360" button has been added\nto the CREATE panel of the MODEL workspace.')
+            pass
+
     except:
         if ui:
             ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))
 
-def run(context):
+def stop(context):
+    #ui = None
     try:
+           
+        createPanel = ui.allToolbarPanels.itemById('SolidCreatePanel')
+        niceBoxBtn = createPanel.controls.itemById(commandId)       
+        if niceBoxBtn:
+            niceBoxBtn.deleteMe()
         
-        #userParams()
-        if not design:
-            ui.messageBox('It is not supported in current workspace, please change to MODEL workspace and try again.')
-            return
-            
-        
-        commandDefinitions = ui.commandDefinitions
-        #check the command exists or not
-        cmdDef = commandDefinitions.itemById('BOX')
-        if not cmdDef:
-            cmdDef = commandDefinitions.addButtonDefinition('BOX',
-                    'Create Box',
-                    'Create a box.',
-                    './resources') # relative resource file path is specified
+        cmdDef = ui.commandDefinitions.itemById(commandId)
+        if cmdDef:
+            cmdDef.deleteMe()
 
-        onCommandCreated = BoxCommandCreatedHandler()
-        cmdDef.commandCreated.add(onCommandCreated)
-        # keep the handler referenced beyond this function
-        handlers.append(onCommandCreated)
-        inputs = adsk.core.NamedValues.create()
-        cmdDef.execute(inputs)
-   
-        # prevent this module from being terminate when the script returns, because we are waiting for event handlers to fire
-        adsk.autoTerminate(False)
     except:
         if ui:
             ui.messageBox('Failed:\n{}'.format(traceback.format_exc()))

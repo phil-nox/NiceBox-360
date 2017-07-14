@@ -1,10 +1,13 @@
 {
 	"autodeskProduct":	"Fusion360",
-	"type":	"script",
-	"author":	"Philipp Nox",
+	"type":	"addin",
+	"id":	"8ec4b067-40ef-46d7-a069-1357abc3c49d",
+	"author":	"Philipp Nox, CopyPasteStd",
 	"description":	{
-		"":	""
+		"":	"Box generator for Fusion 360"
 	},
+	"version":	"1.0",
+	"runOnStartup":	true,
 	"supportedOS":	"windows|mac",
 	"editEnabled":	true
 }
