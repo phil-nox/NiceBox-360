@@ -26,8 +26,7 @@ if app:
 
 newComp = None
 
-product = app.activeProduct
-design = adsk.fusion.Design.cast(product)
+
 
 def showMessage(string):
     appMes = adsk.core.Application.get()
@@ -324,6 +323,8 @@ class BOX:
         self._preview = value
 
     def buildBox(self):
+        product = app.activeProduct
+        design = adsk.fusion.Design.cast(product)
         rootComp = design.rootComponent
         root = createNewComponent(rootComp)
         root.name = defaultBoxName 
@@ -771,40 +772,7 @@ def saveToDXF(sketch, name):
             dxf_path = os.path.join("", path, name + ".dxf")
             sketch.saveAsDXF(dxf_path)
             
-# Add data to User Parameters
-def userParams():
-    
-    # ToDo -   
-    if not paramExists(design, 'defaultBoxName'):
-        design.userParameters.add('defaultBoxName', adsk.core.ValueInput.createByString(defaultBoxName), "", "Box name")
-    if not paramExists(design, 'defaultWall'):
-        design.userParameters.add('defaultWall', adsk.core.ValueInput.createByReal(0.03), "cm", "Wall thickness")
-    if not paramExists(design, 'defaultH'):
-        design.userParameters.add('defaultH', adsk.core.ValueInput.createByReal(30), "cm", "Height")
-    if not paramExists(design, 'defaultW'):
-        design.userParameters.add('defaultW', adsk.core.ValueInput.createByReal(10), "cm", "Width")
-    if not paramExists(design, 'defaultD'):
-        design.userParameters.add('defaultD', adsk.core.ValueInput.createByReal(10), "cm", "Depth")
-    if not paramExists(design, 'defaultKerf'):
-        design.userParameters.add('defaultKerf', adsk.core.ValueInput.createByReal(0.03), "cm", "Kerf")
-    if not paramExists(design, 'defaultMill'):
-        design.userParameters.add('defaultMill', adsk.core.ValueInput.createByReal(0.03), "cm", "Mill")
-    if not paramExists(design, 'defaultShiftTotal'):
-        design.userParameters.add('defaultShiftTotal', adsk.core.ValueInput.createByReal(1), "cm", "Shift total")
-    if not paramExists(design, 'defaultSheetAlpha'):
-        design.userParameters.add('defaultSheetAlpha', adsk.core.ValueInput.createByReal(0.3), "cm", "Sheet Alpha")
-    
 
-# Check if some user parameter exist or not  
-def paramExists(design, paramName):
-    # Try to get the parameter with the specified name.
-    param = design.userParameters.itemByName(paramName)            
-    
-    # Check to see if a parameter was returned.
-    if param:
-        return True
-    else:
-        return False
                     
 def run(context):
     ui = None
@@ -819,7 +787,6 @@ def run(context):
         cmdDef = ui.commandDefinitions.itemById(commandId)
         if not cmdDef:   
             cmdDef = ui.commandDefinitions.addButtonDefinition(commandId, 'NiceBox-360', 'Creates a box by your parameters', 'Resources/NiceBox')             
-
         createPanel = ui.allToolbarPanels.itemById('SolidCreatePanel')
         niceBoxBtn = createPanel.controls.addCommand(cmdDef)
         
