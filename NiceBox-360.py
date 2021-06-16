@@ -775,10 +775,11 @@ def saveToDXF(sketch, name):
 
                     
 def run(context):
-    ui = None
     try:
         global app, ui, box
-        
+
+        ui = None
+
         app = adsk.core.Application.get()
         ui  = app.userInterface
         box = BOX()
